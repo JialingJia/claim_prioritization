@@ -2,9 +2,9 @@ import numpy as np
 import streamlit as st
 import os
 import openai
-# os.environ["OPENAI_API_KEY"] = st.secrets["OPENAI_API_KEY"]
+os.environ['OPENAI_API_KEY'] = st.secrets['OPENAI_API_KEY']
 # openai.api_key = os.getenv("OPENAI_API_KEY")
-openai.api_key = st.secrets["OPENAI_API_KEY"]
+openai.api_key = os.environ['OPENAI_API_KEY']
 
 class Template:
     def __init__ (self, facet, input, description, example):
