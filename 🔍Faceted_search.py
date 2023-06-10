@@ -340,7 +340,7 @@ st.markdown("""<br/> <br/>""", unsafe_allow_html=True)
 # claim list
 st.session_state.selected_claims = []
 for index, rows in pages[current_page - 1].iterrows():
-    claim = st.checkbox(rows['tweet_text'], key=f'checkbox_{index}')
+    claim = st.checkbox(rows['tweet_text'], key=f'checkbox{rows.tweet_id}')
     if claim:
         st.session_state.selected_claims.append(rows['tweet_text'])
     # st.write(rows['tweet_text'])
