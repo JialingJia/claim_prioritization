@@ -128,9 +128,9 @@ if final_submission:
                 GPT_response_list.append(GPT_response.generate_1())
                 progress_bar.progress(percent_complete, text=progress_text)
                 percent_complete = percent_complete + 1/len(df)
-            for text in df['tweet_text']:
-                progress_bar.progress(percent_complete, text=progress_text)
-                percent_complete = percent_complete + 1/len(df)
+            # for text in df['tweet_text']:
+            #     progress_bar.progress(percent_complete, text=progress_text)
+            #     percent_complete = percent_complete + 1/len(df)
             time.sleep(0.1)    
             progress_bar.progress(100, text='completed')
             # new_facet_answer = [item[0] for item in GPT_response_list] + generate_random_boolean(df)[k::]
