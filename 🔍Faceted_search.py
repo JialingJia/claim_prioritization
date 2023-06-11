@@ -58,8 +58,7 @@ if 'user_defined_facet_number' not in st.session_state:
     st.session_state['user_defined_facet_number'] = 0
     st.session_state['GPT_filtered_data'] = pd.DataFrame([])
     st.session_state.selected_claims = []
-    
-st.session_state.value_watcher = []
+    st.session_state.value_watcher = []
 
 st.session_state.verifiable = True
 st.session_state.false_info = True

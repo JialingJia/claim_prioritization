@@ -10,6 +10,7 @@ from st_aggrid.grid_options_builder import GridOptionsBuilder
 from st_aggrid.shared import GridUpdateMode, JsCode
 from prompt_template import Template, GPT
 
+
 # page config
 st.set_page_config(layout="wide")
 st.markdown("""
@@ -62,6 +63,7 @@ if 'user_defined_facet_number' not in st.session_state:
     st.session_state['user_defined_prompts'] = []
     st.session_state['user_defined_facet_number'] = 0
     st.session_state['GPT_filtered_data'] = pd.DataFrame([])
+    st.session_state.value_watcher = []
 
 # load data
 TEST_URL = './user_test_data.csv'
@@ -102,6 +104,7 @@ grid_table = AgGrid(df[['tweet_text']],
                         # reload_data = False
                         )
 prompts_2 = [i['tweet_text'] for i in grid_table['selected_rows']]
+# st.write(prompts_2)
 
 final_submission = st.button('Confirm and add new facet', type='primary')
 if final_submission:
