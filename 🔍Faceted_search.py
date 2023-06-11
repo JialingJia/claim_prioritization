@@ -40,11 +40,6 @@ def filter_data(data, facet):
     data = data.sort_values(by='weighted_score', ascending=False)
     return data
 
-@st.cache_data(show_spinner=False)
-def split_frame(data, rows):
-    data = [data.loc[i : i + rows - 1, :] for i in range(0, len(data), rows)]
-    return data
-
 @st.cache_resource()
 def load_sentenceBert():
     return SentenceTransformer('all-MiniLM-L6-v2')
@@ -63,7 +58,8 @@ if 'user_defined_facet_number' not in st.session_state:
     st.session_state['user_defined_facet_number'] = 0
     st.session_state['GPT_filtered_data'] = pd.DataFrame([])
     st.session_state.selected_claims = []
-    st.session_state.value_watcher = []
+    
+st.session_state.value_watcher = []
 
 st.session_state.verifiable = True
 st.session_state.false_info = True
@@ -129,6 +125,9 @@ def embedTweet(tw_url):
     except:
         pass
         
+def split_frame(data, rows):
+    data = [data.loc[i : i + rows - 1, :] for i in range(0, len(data), rows)]
+    return data
 
 # load data
 TEST_URL = './user_test_data.csv'
@@ -311,7 +310,7 @@ pagination = st.container()
 
 bottom_menu = st.columns((1.5,2,1,1))
 with bottom_menu[3]:
-    batch_size = st.selectbox("Page Size", options=[20, 50, 100], label_visibility="collapsed")
+    batch_size = st.selectbox("Page Size", options=[25, 50, 100], label_visibility="collapsed")
 with bottom_menu[2]:
     total_pages = (
         int(len(df_filter_data) / batch_size) if int(len(df_filter_data) / batch_size) > 0 else 1
@@ -338,44 +337,44 @@ pages = split_frame(df_filter_data, batch_size)
 st.markdown("""<br/> <br/>""", unsafe_allow_html=True)
 
 # claim list
-st.session_state.selected_claims = []
+selected_claims = []
 for index, rows in pages[current_page - 1].iterrows():
     claim = st.checkbox(rows['tweet_text'], key=f'checkbox{rows.tweet_id}')
     if claim:
-        st.session_state.selected_claims.append(rows['tweet_text'])
+        selected_claims.append(rows['tweet_text'])
     # st.write(rows['tweet_text'])
     st.markdown("""<hr style="margin:1em 0px 2em 0px" /> """, unsafe_allow_html=True)
 # pagination.dataframe(data = pages[current_page - 1], use_container_width=True)
 
 ## download claims
-if st.session_state.selected_claims:
+if selected_claims:
     st.session_state.claim_selected = False
 else:
     st.session_state.claim_selected = True
 
-def clear_all():
-    st.session_state.selected_claims = []
-    for index, rows in pages[current_page - 1].iterrows():
-        st.session_state[f'checkbox{rows.tweet_id}'] = False
-    return
+# def clear_all():
+#     st.session_state.selected_claims = []
+#     for index, rows in pages[current_page - 1].iterrows():
+#         st.session_state[f'checkbox{rows.tweet_id}'] = False
+#     return
 
 claim_select_buttons = st.columns([1.6,1,4])
 
 with claim_select_buttons[0]:
     st.download_button(
-        label = f"Download selected claims ({len(st.session_state.selected_claims)})",
-        data = pd.DataFrame(st.session_state.selected_claims, columns=['claims']).to_csv().encode('utf-8'),
+        label = f"Download selected claims ({len(selected_claims)})",
+        data = pd.DataFrame(selected_claims, columns=['claims']).to_csv().encode('utf-8'),
         file_name = f'page_{current_page}_claims.csv',
         mime='text/csv',
-        disabled=st.session_state.claim_selected
+        # disabled=st.session_state.claim_selected
     )
 
-with claim_select_buttons[1]:
-    deselect_claims = st.button(
-        label = 'Deselect all',
-        disabled=st.session_state.claim_selected,
-        on_click=clear_all
-    )
+# with claim_select_buttons[1]:
+#     deselect_claims = st.button(
+#         label = 'Deselect all',
+#         disabled=st.session_state.claim_selected,
+#         on_click=clear_all
+#     )
 
 if reset:
     del st.session_state['user_defined_facet']

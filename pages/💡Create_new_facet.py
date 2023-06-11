@@ -93,12 +93,14 @@ edited_df.configure_column('tweet_text', header_name='tweets', **{'width':'1000'
 edited_df.configure_selection(selection_mode="multiple", use_checkbox=True)
 gridOptions = edited_df.build()
 grid_table = AgGrid(df[['tweet_text']], 
-                        gridOptions=gridOptions,
+                        update_mode=GridUpdateMode.SELECTION_CHANGED,
+                        gridOptions = gridOptions,
                         fit_columns_on_grid_load=True,
-                        height=400,
-                        width='100%',
-                        custom_css={".ag-cell-value": {'line-height': '20px','padding': '10px'}, "#gridToolBar": {'display':'none'}},
-                        reload_data=False)
+                        height = 400,
+                        width = '100%',
+                        custom_css = {".ag-cell-value": {'line-height': '20px','padding': '10px'}, "#gridToolBar": {'display':'none'}},
+                        # reload_data = False
+                        )
 prompts_2 = [i['tweet_text'] for i in grid_table['selected_rows']]
 
 final_submission = st.button('Confirm and add new facet', type='primary')
