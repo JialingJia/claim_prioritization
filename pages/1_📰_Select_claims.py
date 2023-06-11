@@ -25,9 +25,9 @@ st.markdown("""
     button[title="View fullscreen"]{
         visibility: hidden;
     }
-    button.css-nqowgj.e1ewe7hr3{
-        display: none;
-    }
+    # button.css-nqowgj.e1ewe7hr3{
+    #     display: none;
+    # }
     </style>
     """,unsafe_allow_html=True)
 

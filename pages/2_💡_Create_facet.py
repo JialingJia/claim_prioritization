@@ -15,9 +15,9 @@ from prompt_template import Template, GPT
 st.set_page_config(layout="wide")
 st.markdown("""
     <style>
-    button.css-nqowgj.e1ewe7hr3{
-            display: none;
-        }
+    # button.css-nqowgj.e1ewe7hr3{
+    #         display: none;
+    #     }
     </style>
 """, unsafe_allow_html=True)
 

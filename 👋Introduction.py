@@ -26,9 +26,9 @@ st.markdown("""
     label.css-1whk732.e10yodom0 {
         padding-top: 10px;
     }
-    button.css-nqowgj.e1ewe7hr3{
-        display: none;
-    }
+    # button.css-nqowgj.e1ewe7hr3{
+    #     display: none;
+    # }
     </style>
     """,unsafe_allow_html=True)
 
