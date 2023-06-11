@@ -15,7 +15,7 @@ from prompt_template import Template, GPT
 st.set_page_config(layout="wide")
 st.markdown("""
     <style>
-    #button.css-nqowgj.e1ewe7hr3{
+    button.css-nqowgj.e1ewe7hr3{
             display: none;
         }
     </style>
@@ -76,14 +76,14 @@ else:
 df = init_data
 
 # UI
-st.subheader('Create and add new facet')
-facet_name = st.text_input(f'**Facet name**: what is your new facet?', placeholder="propaganda")
+st.subheader('Create and add new criterion')
+facet_name = st.text_input(f'**Criterion name**: what is your new criterion?', placeholder="propaganda")
 
-prompts_1 = st.text_area(f'**Descriptions**: how you want LLMs to filter claims?', 
+prompts_1 = st.text_area(f'**Descriptions**: how would you describe the new criterion?', 
                                      key='free_form_customized', 
                                      placeholder='e.g., if the new facet aims to detect propaganda claims, describe how a propaganda clam is written')
 
-query = st.text_input(f"**Representative examples**: which claims that match the new facet?", placeholder="search claims using keywords")
+query = st.text_input(f"**Representative examples**: which claims that match the new criterion?", placeholder="search claims using keywords")
 df = search(query, df)
 
 # AgGrid version
@@ -106,7 +106,7 @@ grid_table = AgGrid(df[['tweet_text']],
 prompts_2 = [i['tweet_text'] for i in grid_table['selected_rows']]
 # st.write(prompts_2)
 
-final_submission = st.button('Confirm and add new facet', type='primary')
+final_submission = st.button('Confirm and add new criterion', type='primary')
 if final_submission:
     if facet_name and (prompts_1 or prompts_2):
         if facet_name not in [items['facet_name'] for items in st.session_state['user_defined_facet']]:

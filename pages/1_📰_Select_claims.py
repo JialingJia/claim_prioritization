@@ -19,10 +19,13 @@ st.markdown("""
     .css-1629p8f h4 {
         font-weight: 300;
     }
+    label.css-1whk732.e10yodom0 {
+        padding-top: 10px;
+    }
     button[title="View fullscreen"]{
         visibility: hidden;
     }
-    #button.css-nqowgj.e1ewe7hr3{
+    button.css-nqowgj.e1ewe7hr3{
         display: none;
     }
     </style>
@@ -114,15 +117,15 @@ def re_rank(data):
     data = data.sort_values(by='weighted_score', ascending=False)
     return data
 
-def embedTweet(tw_url):
-    URL = "https://twitter.com/anyuser/status/" + tw_url
-    api = "https://publish.twitter.com/oembed?url={}".format(URL)
-    response = requests.get(api)
-    try:
-        res = response.json()["html"]
-        return components.html(res, height=800,scrolling=True)
-    except:
-        pass
+# def embedTweet(tw_url):
+#     URL = "https://twitter.com/anyuser/status/" + tw_url
+#     api = "https://publish.twitter.com/oembed?url={}".format(URL)
+#     response = requests.get(api)
+#     try:
+#         res = response.json()["html"]
+#         return components.html(res, height=800,scrolling=True)
+#     except:
+#         pass
         
 def split_frame(data, rows):
     data = [data.loc[i : i + rows - 1, :] for i in range(0, len(data), rows)]
@@ -147,7 +150,7 @@ with st.sidebar:
 
     col1, col2 = st.columns([3.4, 1])
     with col1:
-        st.markdown('#### Verifiable')
+        st.markdown('#### Verifiable', help="The tweet contains a verifiable factual claim.")
     with col2:
         verifiable_select = tog.st_toggle_switch(label=None, key='verifiable_select', inactive_color='rgba(151, 166, 195, 1)', active_color='rgb(255, 75, 75)', track_color='rgba(151, 166, 195, 0.5)')
     verifiable_weight_slider = st.slider('Verifiable', key='verifiable_weight', min_value=0.0, value=0.0, max_value=1.0, label_visibility='collapsed')
@@ -163,7 +166,7 @@ with st.sidebar:
     
     col1, col2 = st.columns([3.4, 1])
     with col1:
-        st.markdown('#### False information')
+        st.markdown('#### False information', help="The tweet appears to contain false information")
     with col2:
         false_info_select = tog.st_toggle_switch(label=None, key='false_info_select', inactive_color='rgba(151, 166, 195, 1)', active_color='rgb(255, 75, 75)', track_color='rgba(151, 166, 195, 0.5)')
     false_info_weight_slider = st.slider('false_info', key='false_info_weight', min_value=0.0, value=0.0, max_value=1.0, label_visibility='collapsed')
@@ -179,7 +182,7 @@ with st.sidebar:
     
     col1, col2 = st.columns([3.4, 1])
     with col1:
-        st.markdown('#### Public interest')
+        st.markdown('#### Public interest', help="The tweet has an effect on or will be of interest to the general public.")
     with col2:
         interest_to_public_select = tog.st_toggle_switch(label=None, key='interest_to_public_select', inactive_color='rgba(151, 166, 195, 1)', active_color='rgb(255, 75, 75)', track_color='rgba(151, 166, 195, 0.5)')
     interest_to_public_weight_slider = st.slider('interest_to_public', key='interest_to_public_weight', min_value=0.0, value=0.0, max_value=1.0, label_visibility='collapsed')
@@ -195,7 +198,7 @@ with st.sidebar:
     
     col1, col2 = st.columns([3.4, 1])
     with col1:
-        st.markdown('#### General harm')
+        st.markdown('#### General harm', help="The tweet appears to be harmful to society, people, company, or products.")
     with col2:
         general_harm_select = tog.st_toggle_switch(label=None, key='general_harm_select', inactive_color='rgba(151, 166, 195, 1)', active_color='rgb(255, 75, 75)', track_color='rgba(151, 166, 195, 0.5)')
     general_harm_weight_slider = st.slider('general_harm', key='general_harm_weight', min_value=0.0, value=0.0, max_value=1.0, label_visibility='collapsed')
@@ -211,7 +214,7 @@ with st.sidebar:
 
     col1, col2 = st.columns([3.4, 1])
     with col1:
-        st.markdown('#### Attention to fact-checkers')
+        st.markdown('#### Attention to fact-checkers', help="A professional fact-checker should verify the claim in the tweet.")
     with col2:
         attention_to_fact_check_select = tog.st_toggle_switch(label=None, key='attention_to_fact_check_select', inactive_color='rgba(151, 166, 195, 1)', active_color='rgb(255, 75, 75)', track_color='rgba(151, 166, 195, 0.5)')
     attention_to_fact_check_weight_slider = st.slider('attention_to_fact_check', key='attention_to_fact_check_weight', min_value=0.0, value=0.0, max_value=1.0, label_visibility='collapsed')
