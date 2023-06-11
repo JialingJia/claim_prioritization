@@ -146,7 +146,7 @@ if final_submission:
             # generate random number for testing
             # df[facet_name] = generate_random_boolean(df)
             # df[facet_name + '_prob'] = generate_random(df)
-            st.dataframe(df)
+            # st.dataframe(df)
             st.session_state['GPT_filtered_data'] = df
             st.success('You have successfully added the new facet to the facet browsing, go back and play with it!', icon="✅")
         else:
