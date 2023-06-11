@@ -88,10 +88,10 @@ df = search(query, df)
 
 # AgGrid version
 edited_df = GridOptionsBuilder.from_dataframe(df[['tweet_text']])
-edited_df.configure_default_column(groupable=True)
+# edited_df.configure_default_column(groupable=True)
 # edited_df.configure_pagination(enabled=True)
 edited_df.configure_column('tweet_text', editable=True, wrapText=True, autoHeight=True)
-edited_df.configure_column('tweet_text', header_name='tweets', **{'width':'1000'})
+edited_df.configure_column('tweet_text', header_name='tweets', **{'width':1000})
 edited_df.configure_selection(selection_mode="multiple", use_checkbox=True)
 gridOptions = edited_df.build()
 grid_table = AgGrid(df[['tweet_text']], 
