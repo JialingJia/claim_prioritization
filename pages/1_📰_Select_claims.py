@@ -153,7 +153,7 @@ with st.sidebar:
         st.markdown('#### Verifiable', help="The tweet contains a verifiable factual claim.")
     with col2:
         verifiable_select = tog.st_toggle_switch(label=None, key='verifiable_select', inactive_color='rgba(151, 166, 195, 1)', active_color='rgb(255, 75, 75)', track_color='rgba(151, 166, 195, 0.5)')
-    verifiable_weight_slider = st.slider('Verifiable', key='verifiable_weight', min_value=0.0, value=0.0, max_value=1.0, label_visibility='collapsed')
+    verifiable_weight_slider = st.slider('Verifiable', key='verifiable_weight', min_value=0.0, value=0.0, max_value=1.0, format="%f", label_visibility='collapsed')
     if verifiable_select:
         st.session_state.verifiable = False
         draw_graph(df_filter_data, 'verifiable', 'verifiable_numeric')
@@ -169,7 +169,7 @@ with st.sidebar:
         st.markdown('#### False information', help="The tweet appears to contain false information")
     with col2:
         false_info_select = tog.st_toggle_switch(label=None, key='false_info_select', inactive_color='rgba(151, 166, 195, 1)', active_color='rgb(255, 75, 75)', track_color='rgba(151, 166, 195, 0.5)')
-    false_info_weight_slider = st.slider('false_info', key='false_info_weight', min_value=0.0, value=0.0, max_value=1.0, label_visibility='collapsed')
+    false_info_weight_slider = st.slider('false_info', key='false_info_weight', min_value=0.0, value=0.0, max_value=1.0, format="%f", label_visibility='collapsed')
     if false_info_select:
         st.session_state.false_info = False
         draw_graph(df_filter_data, 'false_info', 'false_info_numeric')
@@ -185,7 +185,7 @@ with st.sidebar:
         st.markdown('#### Public interest', help="The tweet has an effect on or will be of interest to the general public.")
     with col2:
         interest_to_public_select = tog.st_toggle_switch(label=None, key='interest_to_public_select', inactive_color='rgba(151, 166, 195, 1)', active_color='rgb(255, 75, 75)', track_color='rgba(151, 166, 195, 0.5)')
-    interest_to_public_weight_slider = st.slider('interest_to_public', key='interest_to_public_weight', min_value=0.0, value=0.0, max_value=1.0, label_visibility='collapsed')
+    interest_to_public_weight_slider = st.slider('interest_to_public', key='interest_to_public_weight', min_value=0.0, value=0.0, max_value=1.0, format="%f", label_visibility='collapsed')
     if interest_to_public_select:
         st.session_state.interest_to_public = False
         if interest_to_public_weight_slider == 0.00:
@@ -201,7 +201,7 @@ with st.sidebar:
         st.markdown('#### General harm', help="The tweet appears to be harmful to society, people, company, or products.")
     with col2:
         general_harm_select = tog.st_toggle_switch(label=None, key='general_harm_select', inactive_color='rgba(151, 166, 195, 1)', active_color='rgb(255, 75, 75)', track_color='rgba(151, 166, 195, 0.5)')
-    general_harm_weight_slider = st.slider('general_harm', key='general_harm_weight', min_value=0.0, value=0.0, max_value=1.0, label_visibility='collapsed')
+    general_harm_weight_slider = st.slider('general_harm', key='general_harm_weight', min_value=0.0, value=0.0, max_value=1.0, format="%f", label_visibility='collapsed')
     if general_harm_select:
         st.session_state.general_harm = False
         if general_harm_weight_slider == 0.00:
@@ -217,7 +217,7 @@ with st.sidebar:
         st.markdown('#### Attention to fact-checkers', help="A professional fact-checker should verify the claim in the tweet.")
     with col2:
         attention_to_fact_check_select = tog.st_toggle_switch(label=None, key='attention_to_fact_check_select', inactive_color='rgba(151, 166, 195, 1)', active_color='rgb(255, 75, 75)', track_color='rgba(151, 166, 195, 0.5)')
-    attention_to_fact_check_weight_slider = st.slider('attention_to_fact_check', key='attention_to_fact_check_weight', min_value=0.0, value=0.0, max_value=1.0, label_visibility='collapsed')
+    attention_to_fact_check_weight_slider = st.slider('attention_to_fact_check', key='attention_to_fact_check_weight', min_value=0.0, value=0.0, max_value=1.0, format="%f", label_visibility='collapsed')
     if attention_to_fact_check_select:
         st.session_state.attention_to_fact_check = False
         if attention_to_fact_check_weight_slider == 0.00:
@@ -252,7 +252,7 @@ with st.sidebar:
                   st.markdown(""" #### <span>{new_facet}</span> """.format(new_facet=item['facet_name'].capitalize()),  unsafe_allow_html=True)
             with col2:
                 new_facet_select = tog.st_toggle_switch(label=None, key=new_facet + '_select', inactive_color='rgba(151, 166, 195, 1)', active_color='rgb(255, 75, 75)', track_color='rgba(151, 166, 195, 0.5)')
-            new_facet_weight_slider = st.slider('new_facet_weight_slider', key=new_facet + '_weight_slider', min_value=0.0, value=0.0, max_value=1.0, label_visibility='collapsed')
+            new_facet_weight_slider = st.slider('new_facet_weight_slider', key=new_facet + '_weight_slider', min_value=0.0, value=0.0, max_value=1.0, format="%f", label_visibility='collapsed')
             weight_slider_list.append(new_facet_weight_slider)
             if new_facet_select:
                 st.session_state[new_facet] = False

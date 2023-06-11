@@ -45,22 +45,22 @@ def draw_graph(data, name, prob):
     return graph
 
 st.markdown('### 👋 Hello~')
-st.markdown('We are the [Artificial Intelligence and Human-Centered Computing Group](https://ai.ischool.utexas.edu/) from the University of Texas at Austin. We build a claim selection prototype to explore **how fact-checkers and journalists triage different claim criteria to prioritize checkworthy claims for fact-checking**. Three AI models are applied to rank and filter hundreds or thousands of claims posted on social media. ')
+st.markdown('We are the [Artificial Intelligence and Human-Centered Computing Group](https://ai.ischool.utexas.edu/) from the University of Texas at Austin. We build a claim selection prototype to explore **how fact-checkers and journalists triage different claim criteria to prioritize checkworthy claims for fact-checking**. Three AI models are applied to rank and filter hundreds or thousands of claims posted on social media. We describe corresponding tool functions as followed.')
 
 st.markdown('<br>', unsafe_allow_html=True)
 
-st.markdown('##### Weighted ranking')
+st.markdown('##### 1. Weighted ranking')
 st.markdown('lets you personalize the importance of different claim criteria to rank all claims. Claims that appear at the top are predicted to more likely match the corresponding criteria that are assigned with higher weights. You can use the slider to adjust the weight of each criterion.')
 
 col1, col2 = st.columns([4, 3])
 with col1:
-    test_weight_slider = st.slider('Verifiable', key='test_weight', min_value=0.0, value=0.0, max_value=1.0, help="The tweet contains a verifiable factual claim.")
+    test_weight_slider = st.slider('Verifiable', key='test_weight', min_value=0.0, value=0.0, max_value=1.0, format="%f", help="The tweet contains a verifiable factual claim.")
     st.caption(f'You currently weight **:red[{test_weight_slider}]** score on the "verifiable" criterion.')
 
 st.markdown('<br>', unsafe_allow_html=True)
 
-st.markdown('##### Faceted searching')
-st.markdown('lets you filter irrelevant claims. When you toggle switch on certain criteria, claims only predicted to contain that criterion are displayed. You can select a range of probabilities the model uses to filter claims.')
+st.markdown('##### 2. Faceted searching')
+st.markdown('lets you filter irrelevant claims. If you switch on certain criterion, claims only predicted to contain the criterion will be displayed. You can select a range of probabilities the model uses to filter claims.')
 
 col1, col2 = st.columns([4.5, 3])
 with col1:
@@ -74,13 +74,13 @@ with col1:
         draw_graph(data, 'verifiable', 'verifiable_numeric')
         test_slider = st.slider('Select a range of values',0.50, 1.00, (0.50, 1.00), format="%f",
                                     key='verifiable_slider', disabled=st.session_state.verifiable, label_visibility='collapsed')
-        st.caption(f'Claims of which probability between **:red[{test_slider[0]}]** and **:red[{test_slider[1]}]** are displayed. Note that claims of which probability less than 0.5 are filtered out because they are predicted as not verifiable.')
+        st.caption(f'Claims of which probability between **:red[{test_slider[0]}]** and **:red[{test_slider[1]}]** will be displayed. Note that claims of which probability less than 0.5 will be filtered out because they are predicted as not verifiable.')
     else:
         st.caption(f'Please turn on the "verifiable" filter.')
 
 st.markdown('<br>', unsafe_allow_html=True)
 
-st.markdown('##### User-customized facet')
+st.markdown('##### 3. User-customized facet')
 st.markdown('lets you create personalized criteria to rank or filter claims beyond default claim criteria. By providing the context of what the new criterion is, an LLM (Large Language Model) helps you preprocess all claims and add the new criterion as another facet for ranking and searching.')
 
 col1, col2 = st.columns([4, 3])
