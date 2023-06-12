@@ -368,7 +368,7 @@ with claim_select_buttons[0]:
         data = pd.DataFrame(selected_claims, columns=['claims']).to_csv().encode('utf-8'),
         file_name = f'page_{current_page}_claims.csv',
         mime='text/csv',
-        # disabled=st.session_state.claim_selected
+        disabled=st.session_state.claim_selected
     )
 
 # with claim_select_buttons[1]:
