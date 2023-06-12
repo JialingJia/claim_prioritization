@@ -343,7 +343,7 @@ selected_claims = []
 for index, rows in pages[current_page - 1].iterrows():
     claim = st.checkbox(rows['tweet_text'], key=f'checkbox{rows.tweet_id}')
     if claim:
-        selected_claims.append(rows['tweet_text'])
+        selected_claims.append([rows['tweet_id'], rows['tweet_text']])
     # st.write(rows['tweet_text'])
     st.markdown("""<hr style="margin:1em 0px 2em 0px" /> """, unsafe_allow_html=True)
 # pagination.dataframe(data = pages[current_page - 1], use_container_width=True)
@@ -365,7 +365,7 @@ claim_select_buttons = st.columns([1.6,1,4])
 with claim_select_buttons[0]:
     st.download_button(
         label = f"Download selected claims ({len(selected_claims)})",
-        data = pd.DataFrame(selected_claims, columns=['claims']).to_csv().encode('utf-8'),
+        data = pd.DataFrame(selected_claims, columns=['tweet_id','tweet_text']).to_csv().encode('utf-8'),
         file_name = f'page_{current_page}_claims.csv',
         mime='text/csv',
         disabled=st.session_state.claim_selected
