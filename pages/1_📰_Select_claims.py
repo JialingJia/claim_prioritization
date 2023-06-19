@@ -376,7 +376,7 @@ for ele1, ele2 in zip(weight_slider_list, st.session_state.value_watcher):
 ## pagination
 pagination = st.container()
 
-bottom_menu = st.columns((3,0.6,1,0.1,0.6,1))
+bottom_menu = st.columns((2.8,0.6,1,0.1,0.6,1))
 
 with bottom_menu[5]:
     batch_size = st.selectbox("Page Size", options=[25, 50, 100], label_visibility="collapsed")
