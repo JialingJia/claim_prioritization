@@ -49,6 +49,10 @@ st.markdown("""
         padding-top: 9px;
         padding-right: 0px;
     }
+    label.st-e2 {
+        padding-top: 9px;
+        padding-right: 0px;
+    }
     button[title="View fullscreen"]{
         visibility: hidden;
     }
