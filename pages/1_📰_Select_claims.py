@@ -17,9 +17,9 @@ import requests
 st.set_page_config(layout="wide")
 st.markdown("""
     <style>
-    button.css-nqowgj.e1ewe7hr3{
-        display: none;
-    }
+    # button.css-nqowgj.e1ewe7hr3{
+    #     display: none;
+    # }
     ::-webkit-scrollbar {
         width: 10px;
     }

@@ -16,12 +16,9 @@ data = load_data(TEST_URL)
 
 st.markdown("""
     <style>
-    button.css-nqowgj.e1ewe7hr3{
-        display: none;
-    }
-    button.css-nqowgj.e1ewe7hr3{
-        display: none;
-    }
+    # button.css-nqowgj.e1ewe7hr3{
+    #     display: none;
+    # }
     ::-webkit-scrollbar {
         width: 10px;
     }
@@ -34,9 +31,9 @@ st.markdown("""
     ::-webkit-scrollbar-thumb:hover {
         background: #555;
     }
-    .css-1oe5cao {
-        padding-top: 3rem;
-    }
+    # .css-lrlib {
+    #     padding-top: 3rem;
+    # }
     button[title="View fullscreen"]{
         visibility: hidden;
     }

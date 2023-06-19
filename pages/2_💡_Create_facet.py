@@ -16,9 +16,9 @@ from prompt_template import Template, GPT
 st.set_page_config(layout="wide")
 st.markdown("""
     <style>
-    button.css-nqowgj.e1ewe7hr3{
-        display: none;
-    }
+    # button.css-nqowgj.e1ewe7hr3{
+    #     display: none;
+    # }
     ::-webkit-scrollbar {
         width: 10px;
     }
@@ -31,9 +31,9 @@ st.markdown("""
     ::-webkit-scrollbar-thumb:hover {
         background: #555;
     }
-    .css-1oe5cao {
-        padding-top: 3rem;
-    }
+    # .css-lrlib {
+    #     padding-top: 3rem;
+    # }
     </style>
 """, unsafe_allow_html=True)
 
