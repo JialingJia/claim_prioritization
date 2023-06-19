@@ -416,11 +416,12 @@ pages = split_frame(df_filter_data, batch_size)
 
 # AgGrid version
 if pages:
-    df_render = pages[current_page - 1][['tweet_text']]
+    df_render = pages[current_page - 1][['tweet_text', 'raw_idx']]
 else:
     df_render = pd.DataFrame(columns=['tweet_text'])
 edited_df = GridOptionsBuilder.from_dataframe(df_render)
-edited_df.configure_column('tweet_text', editable=True, wrapText=True, autoHeight=True)
+edited_df.configure_column('raw_idx', hide=True)
+edited_df.configure_column('tweet_text', wrapText=True, autoHeight=True)
 edited_df.configure_column('tweet_text', header_name='Select claims', **{'width':1000})
 edited_df.configure_selection(selection_mode="multiple", use_checkbox=True)
 gridOptions = edited_df.build()
