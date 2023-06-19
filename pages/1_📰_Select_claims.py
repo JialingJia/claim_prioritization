@@ -85,7 +85,9 @@ def load_sentenceBert():
 @st.cache_resource()
 def load_embedding():
     # path = Path(__file__).parents
-    return joblib.load('./embeddings/corpus_embedding.joblib')
+    embedding_model = load_sentenceBert()
+    corpus_embedding = embedding_model.encode(list(init_data['tweet_text']))
+    return corpus_embedding
 
 # session state
 if 'user_defined_facet_number' not in st.session_state:
@@ -111,18 +113,32 @@ if st.session_state['user_defined_facet']:
 
 # functions
 def similarity_search(query, data):
+    # st.dataframe(data)
     search_model = load_sentenceBert()
     query_embedding = search_model.encode(query, convert_to_tensor=True)
     corpus_embedding = load_embedding()
-    top_k = util.semantic_search(query_embedding, corpus_embedding, top_k=len(init_data))
+    top_k = util.semantic_search(query_embedding, corpus_embedding, top_k=len(data))
     top_id = [i['corpus_id'] for i in top_k[0]]
-    reindex_id = [i for i in top_id if i in list(data['raw_idx'])]
+    new_id = []
+    for i in top_id:
+        if i in list(data.index): 
+            new_id.append(i)
+    # data = data.sort_values(by='index', key=lambda column: column.map(lambda e: new_id.index(e)))
+    # st.write(new_id)
+    data = init_data.iloc[new_id]
+    # st.write(top_id)
+    # st.write(len(new_id))
+    # data = data.iloc[reindex_id]
     # st.write(reindex_id)
-    data.set_index('raw_idx', inplace=True)
+    # data.set_index('raw_idx', inplace=True)
     # st.dataframe(data)
-    data = data.reindex(reindex_id)
+    # data = data.reindex(reindex_id)
     # st.dataframe(data)
     # data = init_data.iloc[top_id]
+    # top_k = util.semantic_search(query_embedding, corpus_embedding, top_k=len(data))
+    # top_id = [i['corpus_id'] for i in top_k[0]]
+    # data = init_data.iloc[top_id]
+    # st.dataframe(data)
     return data
 
 def boolean_search(query, data):

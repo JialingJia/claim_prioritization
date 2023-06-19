@@ -49,7 +49,10 @@ def load_sentenceBert():
 
 @st.cache_resource()
 def load_embedding():
-    return joblib.load('./embeddings/corpus_embedding.joblib')
+    # path = Path(__file__).parents
+    embedding_model = load_sentenceBert()
+    corpus_embedding = embedding_model.encode(list(init_data['tweet_text']))
+    return corpus_embedding
 
 # functions
 def similarity_search(query, data):
@@ -58,7 +61,13 @@ def similarity_search(query, data):
     corpus_embedding = load_embedding()
     top_k = util.semantic_search(query_embedding, corpus_embedding, top_k=len(data))
     top_id = [i['corpus_id'] for i in top_k[0]]
-    data = init_data.iloc[top_id]
+    new_id = []
+    for i in top_id:
+        if i in list(data.index): 
+            new_id.append(i)
+    # data = data.sort_values(by='index', key=lambda column: column.map(lambda e: new_id.index(e)))
+    # st.write(new_id)
+    data = init_data.iloc[new_id]
     return data
 
 def boolean_search(query, data):
