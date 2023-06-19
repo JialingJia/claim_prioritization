@@ -169,7 +169,7 @@ with col2:
                             fit_columns_on_grid_load=True,
                             height = 600,
                             width = '100%',
-                            custom_css = {".ag-cell-value": {'line-height': '20px','padding': '10px'}, "#gridToolBar": {'display':'none'}},
+                            custom_css = {".ag-cell-value": {'font-size': '14px', 'line-height': '20px','padding': '10px'}, "#gridToolBar": {'display':'none'}},
                             allow_unsafe_jscode = True,
                             # reload_data = False
                             )

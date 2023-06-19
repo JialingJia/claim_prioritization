@@ -434,7 +434,7 @@ grid_table = AgGrid(df_render,
                             fit_columns_on_grid_load=True,
                             height = 800,
                             width = '100%',
-                            custom_css = {".ag-cell-value": {'line-height': '20px','padding': '10px'}, "#gridToolBar": {'display':'none'}},
+                            custom_css = {".ag-cell-value": {'font-size': '16px', 'line-height': '22px','padding': '10px'}, "#gridToolBar": {'display':'none'}},
                             reload_data = False
                             )
     # selected_claims = grid_table['data']
