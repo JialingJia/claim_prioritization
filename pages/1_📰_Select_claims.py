@@ -52,6 +52,13 @@ st.markdown("""
     button[title="View fullscreen"]{
         visibility: hidden;
     }
+    div.css-1dx1gwv {
+        visibility: hidden;
+        padding-top: 0px;
+    }
+    div.st-fg {
+        padding-top: 5px;
+    }
     </style>
     """,unsafe_allow_html=True)
 
