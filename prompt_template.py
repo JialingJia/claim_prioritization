@@ -80,10 +80,11 @@ class GPT:
         yes_prob_normalized = round(yes_prob/(no_prob+yes_prob), 3)
         no_prob_normalized = round(no_prob/(no_prob+yes_prob), 3)
 
-        if no_prob_normalized < yes_prob_normalized:
-            return [1, yes_prob_normalized]
-        else:
-            return [0, no_prob_normalized]
+        return [1, yes_prob_normalized]
+        # if no_prob_normalized < yes_prob_normalized:
+        #     return [1, yes_prob_normalized]
+        # else:
+        #     return [0, no_prob_normalized]
         
     def generate_2(self):
         GPT_response = openai.Completion.create(
@@ -115,8 +116,10 @@ class GPT:
         yes_prob_normalized = round(yes_prob/(no_prob+yes_prob), 3)
         no_prob_normalized = round(no_prob/(no_prob+yes_prob), 3)
 
-        if no_prob_normalized < yes_prob_normalized:
-            return [1, yes_prob_normalized]
-        else:
-            return [0, no_prob_normalized]
+        # if no_prob_normalized < yes_prob_normalized:
+        #     return [1, yes_prob_normalized]
+        # else:
+        #     return [0, no_prob_normalized]
+        
+        return [1, yes_prob_normalized]
         

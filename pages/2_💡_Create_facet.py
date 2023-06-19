@@ -68,13 +68,14 @@ def boolean_search(query, data):
 def generate_random(data):
     random_list = []
     for i in range(0,len(data)):
-        random_list.append(round(random.uniform(0.5, 1), 2))
+        random_list.append(round(random.uniform(0.0, 1.0), 3))
     return random_list
 
 def generate_random_boolean(data):
     random_list = []
     for i in range(0,len(data)):
-        random_list.append(random.choice([0, 1]))
+        # random_list.append(random.choice([0, 1]))
+        random_list.append(1)
     return random_list
 
 # initiate session state
@@ -91,7 +92,7 @@ if 'user_defined_facet_number' not in st.session_state:
     st.session_state.value_watcher = []
     
 # load data
-TEST_URL = './user_test_data.csv'
+TEST_URL = './user_data.csv'
 original_data = load_data(TEST_URL)
 if st.session_state['GPT_filtered_data'].empty:
     init_data = original_data
@@ -200,7 +201,7 @@ if final_submission:
             if prompts_2:
                 st.session_state['user_defined_prompts'].append({'prompt':prompts_2})
             # request GPT
-            k = 10
+            k = 20
             GPT_response_list = []
             progress_text = 'The GPT is processing your texts.'
             progress_bar = st.progress(0, text=progress_text)

@@ -133,7 +133,7 @@ def draw_graph(data, name, prob):
     if name + '_slider' in st.session_state:
         fig.add_vrect(x0=st.session_state[name + '_slider'][0]*10, x1=st.session_state[name + '_slider'][1]*10,fillcolor="rgba(255, 75, 75, 0.35)", opacity=0.5,layer="below", line_width=1.5, line_color="rgba(255, 75, 75, 0.7)")
     else:
-        fig.add_vrect(x0=5.0, x1=10.0,fillcolor="rgba(255, 75, 75, 0.35)", opacity=0.5,layer="below", line_width=1.5, line_color="rgba(255, 75, 75, 0.7)")
+        fig.add_vrect(x0=0.0, x1=10.0,fillcolor="rgba(255, 75, 75, 0.35)", opacity=0.5,layer="below", line_width=1.5, line_color="rgba(255, 75, 75, 0.7)")
     graph = st.plotly_chart(fig, theme='streamlit', config={'staticPlot': True}, use_container_width=True)
     return graph
 
@@ -160,7 +160,7 @@ def split_frame(data, rows):
     return data
 
 # load data
-TEST_URL = './user_test_data.csv'
+TEST_URL = './user_data.csv'
 original_data = load_data(TEST_URL)
 if st.session_state['GPT_filtered_data'].empty:
     init_data = original_data
@@ -189,7 +189,7 @@ with st.sidebar:
             draw_graph(df_filter_data, 'verifiable', 'verifiable_numeric')
             if verifiable_weight_slider == 0.00:
                 st.session_state.verifiable = True
-            verifiable_slider = st.slider('Select a range of values',0.50, 1.00, (0.50, 1.00), format="%f",
+            verifiable_slider = st.slider('Select a range of values',0.00, 1.00, (0.50, 1.00), format="%f",
                                         key='verifiable_slider', disabled=st.session_state.verifiable, label_visibility='collapsed')
     else:
         verifiable_weight_slider = 0
@@ -209,7 +209,7 @@ with st.sidebar:
             draw_graph(df_filter_data, 'false_info', 'false_info_numeric')
             if false_info_weight_slider == 0.00:
                 st.session_state.false_info = True
-            false_info_slider = st.slider('Select a range of values',0.5, 1.0, (0.5, 1.0), format="%f",
+            false_info_slider = st.slider('Select a range of values',0.0, 1.0, (0.5, 1.0), format="%f",
                                         key='false_info_slider', disabled=st.session_state.false_info, label_visibility='collapsed')
     else:
         false_info_weight_slider = 0
@@ -229,7 +229,7 @@ with st.sidebar:
             if interest_to_public_weight_slider == 0.00:
                 st.session_state.interest_to_public = True
             draw_graph(df_filter_data, 'interest_to_public', 'interest_to_public_numeric')
-            interest_to_public_slider = st.slider('Select a range of values',0.5, 1.0, (0.5, 1.0), format="%f",
+            interest_to_public_slider = st.slider('Select a range of values',0.0, 1.0, (0.5, 1.0), format="%f",
                                         key='interest_to_public_slider', disabled=st.session_state.interest_to_public, label_visibility='collapsed')
     else:
         interest_to_public_weight_slider = 0
@@ -249,7 +249,7 @@ with st.sidebar:
             if general_harm_weight_slider == 0.00:
                 st.session_state.general_harm = True
             draw_graph(df_filter_data, 'general_harm', 'general_harm_numeric')
-            general_harm_slider = st.slider('Select a range of values',0.5, 1.0, (0.5, 1.0), format="%f",
+            general_harm_slider = st.slider('Select a range of values',0.0, 1.0, (0.5, 1.0), format="%f",
                                         key='general_harm_slider', disabled=st.session_state.general_harm, label_visibility='collapsed')
     else:
         general_harm_weight_slider = 0
@@ -269,7 +269,7 @@ with st.sidebar:
             if attention_to_fact_check_weight_slider == 0.00:
                 st.session_state.attention_to_fact_check = True
             draw_graph(df_filter_data, 'attention_to_fact_check', 'attention_to_fact_check_numeric')
-            attention_to_fact_check_slider = st.slider('Select a range of values',0.5, 1.0, (0.0, 1.0), format="%f",
+            attention_to_fact_check_slider = st.slider('Select a range of values',0.0, 1.0, (0.0, 1.0), format="%f",
                                         key='attention_to_fact_check_slider', disabled=st.session_state.attention_to_fact_check, label_visibility='collapsed')
     else:
         attention_to_fact_check_weight_slider = 0
@@ -292,6 +292,7 @@ with st.sidebar:
     st.markdown('## Customized')
 
     if st.session_state['user_defined_facet']:
+        st.session_state.reset = False
         for item in st.session_state['user_defined_facet']:
             new_facet = item['facet_name']
             new_facet_slider = new_facet + '_slider'
@@ -312,15 +313,17 @@ with st.sidebar:
                     if new_facet_weight_slider == 0.00:
                         st.session_state[new_facet] = True
                     draw_graph(df_filter_data, new_facet, new_facet + "_prob")
-                    new_facet_slider = st.slider('Select a range of values',0.5, 1.0, (0.5, 1.0), format="%f",
+                    new_facet_slider = st.slider('Select a range of values',0.0, 1.0, (0.5, 1.0), format="%f",
                                             key=new_facet_slider, disabled=st.session_state[new_facet], label_visibility='collapsed')
             else:
                 # new_facet_weight_slider = new_facet + '_weight_slider'
                 st.session_state[new_facet + '_weight_slider'] = 0
+    else:
+        st.session_state.reset = True
 
     st.markdown("""<br> """, unsafe_allow_html=True)
 
-    reset = st.button('reset customized facet', type="secondary")
+    reset = st.button('reset customized facet', type="secondary", disabled=st.session_state.reset)
 
 # body
 
