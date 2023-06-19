@@ -182,7 +182,12 @@ with col2:
                             allow_unsafe_jscode = True,
                             # reload_data = False
                             )
-    st.session_state.after_example = list(selected_table.data['tweet_text'])
+    if selected_table.data.empty == False:
+        st.session_state.after_example = list(selected_table.data['tweet_text'])
+    # else:
+        # st.session_state.middle_example = []
+        # st.experimental_rerun()
+        
     # for i in selected_table.selected_rows:
     #     st.session_state.before_example.append(i['tweet_text'])
     # df_before = pd.DataFrame(st.session_state.before_example, columns=['tweet_text'])
