@@ -119,26 +119,19 @@ def similarity_search(query, data):
     corpus_embedding = load_embedding()
     top_k = util.semantic_search(query_embedding, corpus_embedding, top_k=len(data))
     top_id = [i['corpus_id'] for i in top_k[0]]
+    sim_score = {}
+    for idx, item in zip(top_id, [i['score'] for i in top_k[0]]):
+        sim_score[idx] = item
     new_id = []
     for i in top_id:
         if i in list(data.index): 
             new_id.append(i)
-    # data = data.sort_values(by='index', key=lambda column: column.map(lambda e: new_id.index(e)))
-    # st.write(new_id)
     data = init_data.iloc[new_id]
-    # st.write(top_id)
-    # st.write(len(new_id))
-    # data = data.iloc[reindex_id]
-    # st.write(reindex_id)
-    # data.set_index('raw_idx', inplace=True)
-    # st.dataframe(data)
-    # data = data.reindex(reindex_id)
-    # st.dataframe(data)
-    # data = init_data.iloc[top_id]
-    # top_k = util.semantic_search(query_embedding, corpus_embedding, top_k=len(data))
-    # top_id = [i['corpus_id'] for i in top_k[0]]
-    # data = init_data.iloc[top_id]
-    # st.dataframe(data)
+    data['similarity_numeric'] = [sim_score[i] for i in new_id]
+    data['weighted_score'] = data['weighted_score'] + data['similarity_numeric']
+    # st.write(data)
+    data = data.sort_values(by='weighted_score', ascending=False)
+    # st.write(data)
     return data
 
 def boolean_search(query, data):

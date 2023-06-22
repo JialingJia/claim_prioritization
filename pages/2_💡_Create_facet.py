@@ -143,13 +143,19 @@ delect_js = JsCode("""
     """)
 
 # AgGrid version
+custom_css = {
+                ".ag-cell-value": {'line-height': '20px','padding': '10px'}, 
+                "#gridToolBar": {'display':'none'}
+                }
+
+
 col1, col2 = st.columns(2)
 df_before = pd.DataFrame(st.session_state.before_example, columns=['tweet_text'])
 with col1:
     edited_df = GridOptionsBuilder.from_dataframe(df_before)
     edited_df.configure_column('tweet_text', wrapText=True, autoHeight=True)
     edited_df.configure_column('tweet_text', header_name='tweets (click to add)', **{'width':1000})
-    edited_df.configure_selection(selection_mode="single", use_checkbox=True)
+    edited_df.configure_selection(selection_mode="single")
     # edited_df.configure_grid_options(onRowSelected=delect_js)
     gridOptions = edited_df.build()
     grid_table = AgGrid(df_before, 
@@ -158,7 +164,7 @@ with col1:
                             fit_columns_on_grid_load=True,
                             height = 600,
                             width = '100%',
-                            custom_css = {".ag-cell-value": {'line-height': '20px','padding': '10px'}, "#gridToolBar": {'display':'none'}},
+                            custom_css = custom_css,
                             allow_unsafe_jscode = True,
                                 # reload_data = False
                             )
@@ -175,7 +181,7 @@ with col2:
     selected_df.configure_column('label', editable=True)
     selected_df.configure_column('tweet_text', wrapText=True, autoHeight=True, editable = True)
     selected_df.configure_column('tweet_text', header_name='selected tweets (click to remove)', **{'width':1000})
-    selected_df.configure_selection(selection_mode="single", use_checkbox=True)
+    selected_df.configure_selection(selection_mode="single")
     selected_df.configure_grid_options(onRowSelected=delect_js)
     gridOptions = selected_df.build()
     selected_table = AgGrid(df_middle, 
@@ -185,7 +191,7 @@ with col2:
                             fit_columns_on_grid_load=True,
                             height = 600,
                             width = '100%',
-                            custom_css = {".ag-cell-value": {'font-size': '14px', 'line-height': '20px','padding': '10px'}, "#gridToolBar": {'display':'none'}},
+                            custom_css = custom_css,
                             allow_unsafe_jscode = True,
                             data_return_mode = DataReturnMode.AS_INPUT,
                             update_mode = GridUpdateMode.MODEL_CHANGED
