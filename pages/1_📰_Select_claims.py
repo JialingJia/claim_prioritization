@@ -180,7 +180,7 @@ def split_frame(data, rows):
     return data
 
 # load data
-TEST_URL = './user_data.csv'
+TEST_URL = './user_test_data_cleaned.csv'
 original_data = load_data(TEST_URL)
 if st.session_state['GPT_filtered_data'].empty:
     init_data = original_data
@@ -289,7 +289,7 @@ with st.sidebar:
             if attention_to_fact_check_weight_slider == 0.00:
                 st.session_state.attention_to_fact_check = True
             draw_graph(df_filter_data, 'attention_to_fact_check', 'attention_to_fact_check_numeric')
-            attention_to_fact_check_slider = st.slider('Select a range of values',0.0, 1.0, (0.0, 1.0), format="%f",
+            attention_to_fact_check_slider = st.slider('Select a range of values',0.0, 1.0, (0.5, 1.0), format="%f",
                                         key='attention_to_fact_check_slider', disabled=st.session_state.attention_to_fact_check, label_visibility='collapsed')
     else:
         attention_to_fact_check_weight_slider = 0
@@ -409,7 +409,7 @@ pagination = st.container()
 bottom_menu = st.columns((2.8,0.6,1,0.1,0.6,1))
 
 with bottom_menu[5]:
-    batch_size = st.selectbox("Page Size", options=[25, 50, 100], label_visibility="collapsed")
+    batch_size = st.selectbox("Page Size", options=[20, 50, 100], label_visibility="collapsed")
 
 with bottom_menu[4]:
     st.markdown(f'<p style="margin-top: 8px; margin-left: 10px">Page size:</p>', unsafe_allow_html=True)
@@ -437,13 +437,16 @@ pages = split_frame(df_filter_data, batch_size)
 # st.markdown("""<hr style="margin:1em 0px 2em 0px" /> """, unsafe_allow_html=True)
 # st.markdown("""<br/> <br/>""", unsafe_allow_html=True)
 
+# st.write(st.session_state)
+
 # AgGrid version
 if pages:
-    df_render = pages[current_page - 1][['tweet_text', 'raw_idx']]
+    df_render = pages[current_page - 1][['tweet_text', 'tweet_id']]
+    df_render['tweet_id'] = df_render['tweet_id'].apply(str)
 else:
     df_render = pd.DataFrame(columns=['tweet_text'])
 edited_df = GridOptionsBuilder.from_dataframe(df_render)
-edited_df.configure_column('raw_idx', hide=True)
+edited_df.configure_column('tweet_id', hide=True, cellDataType='string')
 edited_df.configure_column('tweet_text', wrapText=True, autoHeight=True)
 edited_df.configure_column('tweet_text', header_name='Select claims', **{'width':1000})
 edited_df.configure_selection(selection_mode="multiple", use_checkbox=True)
@@ -459,18 +462,25 @@ grid_table = AgGrid(df_render,
                             )
     # selected_claims = grid_table['data']
 selected_claims = grid_table['selected_rows']
-json_string = json.dumps(selected_claims)
-# st.write(selected_claims)
 
-# for index, rows in pages[current_page - 1].iterrows():
-#     claim = st.checkbox(rows['tweet_text'], key=f'checkbox{rows.tweet_id}')
-#     if claim:
-#         selected_claims.append([index, rows['tweet_id'], rows['tweet_text']])
-#     # st.write(rows['tweet_text'])
-#     st.markdown("""<hr style="margin:1em 0px 2em 0px" /> """, unsafe_allow_html=True)
-# pagination.dataframe(data = pages[current_page - 1]['tweet_text'], use_container_width=True)
+# logger
+criteria_list = ['verifiable', 'false_info', 'interest_to_public', 'attention_to_fact_check', 'general_harm']
+if st.session_state['user_defined_facet']:
+    for item in st.session_state['user_defined_facet']:
+        criteria_list.append(item['facet_name'])
+propability_range = []
+for item in criteria_list:
+    try:
+        propability_range.append(st.session_state[item + "_slider"])
+    except:
+        pass
 
-## download claims
+logger = [{'selected_claims': selected_claims}, {'criteria_list': criteria_list}, {'criteria_weight': weight_slider_list}, {'criteria_probability_range': propability_range}, {'user_prompts': st.session_state['user_defined_prompts']}]
+
+# st.write(logger)
+json_string = json.dumps(logger)
+
+## download logger
 if selected_claims:
     st.session_state.claim_selected = False
 else:
@@ -487,11 +497,14 @@ with claim_select_buttons[0]:
         disabled=st.session_state.claim_selected
     )
 
-if reset:
-    del st.session_state['user_defined_facet']
-    del st.session_state['user_defined_prompts']
-    del st.session_state['user_defined_facet_number']
-    del st.session_state['GPT_filtered_data']
-    st.experimental_rerun()
+with st.sidebar:
+    if reset:
+        st.error("Reset facet might delete the GPT-processed data. Do you really want to do this?")
+        if st.button("Yes I'm ready to rumble"):
+            del st.session_state['user_defined_facet']
+            del st.session_state['user_defined_prompts']
+            del st.session_state['user_defined_facet_number']
+            del st.session_state['GPT_filtered_data']
+            st.experimental_rerun()
 
 st.session_state.value_watcher = weight_slider_list

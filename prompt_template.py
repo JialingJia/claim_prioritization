@@ -18,16 +18,20 @@ class Template:
         return context
 
     def ex_context(self):
-        context = """\nHere are some examples that match the """ + self.facet
+        # context = """\nHere are some examples that match the """ + self.facet
+        context = """\n"""
         for idx, example in enumerate(self.example):
-            context_example = """\nExample""" + str(idx) + """:""" + example
+            if example[1] == 1:
+                context_example = """\nInput:""" + example[0] + """\nOutput: Yes"""
+            if example[1] == 0:
+                context_example = """\nInput:""" + example[0] + """\nOutput: No"""
             context = context + context_example
         return context
 
     def prompt(self):
         intro = """\nInput:""" + self.input
-        user_defined_instruct = """\nInstructions: Identify whether this input belongs to """ + f"""{self.facet}""" + """ and answer yes or no."""
-        output = """\nAnswer:"""
+        user_defined_instruct = """\nInstructions: Identify whether this input belongs to """ + f"""{self.facet}""" + """ and output yes or no."""
+        output = """\Output:"""
         if self.description and self.example:
             context = self.des_context() + self.ex_context()
         elif self.description:
@@ -35,7 +39,7 @@ class Template:
         elif self.example:
             context = self.ex_context()
 
-        prompt = intro + user_defined_instruct + context + output
+        prompt = user_defined_instruct + context + intro + output
         return prompt 
     
 class GPT:

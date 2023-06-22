@@ -11,7 +11,7 @@ def load_data(url):
     data = pd.read_csv(url)
     return data
 
-TEST_URL = './user_data.csv'
+TEST_URL = './user_test_data_cleaned.csv'
 data = load_data(TEST_URL)
 
 st.markdown("""

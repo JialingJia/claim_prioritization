@@ -8,7 +8,7 @@ import joblib
 from sentence_transformers import SentenceTransformer, util
 from st_aggrid import AgGrid
 from st_aggrid.grid_options_builder import GridOptionsBuilder
-from st_aggrid.shared import GridUpdateMode, JsCode
+from st_aggrid.shared import GridUpdateMode, JsCode, DataReturnMode
 from prompt_template import Template, GPT
 
 
@@ -101,7 +101,7 @@ if 'user_defined_facet_number' not in st.session_state:
     st.session_state.value_watcher = []
     
 # load data
-TEST_URL = './user_data.csv'
+TEST_URL = './user_test_data_cleaned.csv'
 original_data = load_data(TEST_URL)
 if st.session_state['GPT_filtered_data'].empty:
     init_data = original_data
@@ -112,6 +112,10 @@ df = init_data
 
 # UI
 st.subheader('Create and add new criterion')
+
+st.info(f'You are going to use GPT-3 to create new criteria to filter claims. Please provide **:red[detailed descriptions of the new criteria]** to GPT-3 so that it helps to preprocess claims that are more likely to match the new criteria.')
+
+
 facet_name = st.text_input(f'**Criterion name**: what is your new criterion?', placeholder="propaganda")
 
 prompts_1 = st.text_area(f'**Descriptions**: how would you describe the new criterion?', 
@@ -166,26 +170,30 @@ with col1:
 df_middle = pd.DataFrame(st.session_state.middle_example, columns=['tweet_text'])
 
 with col2:
+    df_middle['label'] = 1
     selected_df = GridOptionsBuilder.from_dataframe(df_middle)
-    selected_df.configure_column('tweet_text', wrapText=True, autoHeight=True)
+    selected_df.configure_column('label', editable=True)
+    selected_df.configure_column('tweet_text', wrapText=True, autoHeight=True, editable = True)
     selected_df.configure_column('tweet_text', header_name='selected tweets (click to remove)', **{'width':1000})
     selected_df.configure_selection(selection_mode="single", use_checkbox=True)
     selected_df.configure_grid_options(onRowSelected=delect_js)
     gridOptions = selected_df.build()
     selected_table = AgGrid(df_middle, 
-                            update_mode=GridUpdateMode.SELECTION_CHANGED,
                             gridOptions = gridOptions,
+                            editable = True,
+                            # reload_data = False,
                             fit_columns_on_grid_load=True,
                             height = 600,
                             width = '100%',
                             custom_css = {".ag-cell-value": {'font-size': '14px', 'line-height': '20px','padding': '10px'}, "#gridToolBar": {'display':'none'}},
                             allow_unsafe_jscode = True,
-                            # reload_data = False
+                            data_return_mode = DataReturnMode.AS_INPUT,
+                            update_mode = GridUpdateMode.MODEL_CHANGED
                             )
     if selected_table.data.empty == False:
         st.session_state.after_example = list(selected_table.data['tweet_text'])
     # else:
-        # st.session_state.middle_example = []
+    #     st.session_state.middle_example = []
         # st.experimental_rerun()
         
     # for i in selected_table.selected_rows:
@@ -193,7 +201,12 @@ with col2:
     # df_before = pd.DataFrame(st.session_state.before_example, columns=['tweet_text'])
     st.session_state.middle_example = st.session_state.after_example
 
-prompts_2 = st.session_state.after_example
+# st.write(selected_table.data)
+
+prompts_2 = []
+for idx, row in selected_table.data.iterrows():
+    prompts_2.append([row['tweet_text'], row['label']])
+# st.write(prompts_2)
     # st.session_state.after_example = [] 
     # for i in selected_table.data:
     #     st.session_state.after_example.append(i['tweet_text'])
