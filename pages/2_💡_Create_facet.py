@@ -13,7 +13,7 @@ from prompt_template import Template, GPT
 
 
 # page config
-st.set_page_config(layout="wide")
+st.set_page_config(layout="wide", initial_sidebar_state="expanded")
 st.markdown("""
     <style>
     # button.css-nqowgj.e1ewe7hr3{
@@ -222,6 +222,7 @@ for idx, row in selected_table.data.iterrows():
 # prompts_2 = st.session_state.temp_example
 final_submission = st.button('Confirm and add new criterion', type='primary')
 if final_submission:
+    st.warning("The GPT is processing your texts. Don't leave this page otherwise the data will be lost.")
     if facet_name and (prompts_1 or prompts_2):
         if facet_name not in [items['facet_name'] for items in st.session_state['user_defined_facet']]:
             # record user input in session state
@@ -234,10 +235,10 @@ if final_submission:
             if prompts_2:
                 st.session_state['user_defined_prompts'].append({'prompt':prompts_2})
             # request GPT
-            k = 20
+            k = 50
             GPT_response_list = []
-            progress_text = 'The GPT is processing your texts.'
-            progress_bar = st.progress(0, text=progress_text)
+            # progress_text = "The GPT is processing your texts"
+            progress_bar = st.progress(0)
             percent_complete = 0
             ## generate prompts
             for text in df['tweet_text'][0:k]:
@@ -245,13 +246,13 @@ if final_submission:
                 # st.markdown(prompt.prompt())
                 GPT_response = GPT(prompt.prompt())
                 GPT_response_list.append(GPT_response.generate_1())
-                progress_bar.progress(percent_complete, text=progress_text)
+                progress_bar.progress(percent_complete)
                 percent_complete = percent_complete + 1/len(df)
             for text in df['tweet_text'][k::]:
-                progress_bar.progress(percent_complete, text=progress_text)
+                progress_bar.progress(percent_complete)
                 percent_complete = percent_complete + 1/len(df)
             time.sleep(0.1)    
-            progress_bar.progress(100, text='completed')
+            progress_bar.progress(100)
             new_facet_answer = [item[0] for item in GPT_response_list] + generate_random_boolean(df)[k::]
             new_facet_prob = [item[1] for item in GPT_response_list] + generate_random(df)[k::]
             # new_facet_answer = [item[0] for item in GPT_response_list]
