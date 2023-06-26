@@ -18,19 +18,19 @@ class Template:
         return context
 
     def ex_context(self):
-        # context = """\nHere are some examples that match the """ + self.facet
+        # context = """\nHere are some examples that match the criterion""" + self.facet
         context = """\n"""
         for idx, example in enumerate(self.example):
             if example[1] == 1:
-                context_example = """\nInput:""" + example[0] + """\nOutput: Yes"""
+                context_example = """\nInput:""" + example[0] + """\nOutput:yes"""
             if example[1] == 0:
-                context_example = """\nInput:""" + example[0] + """\nOutput: No"""
+                context_example = """\nInput:""" + example[0] + """\nOutput:no"""
             context = context + context_example
         return context
 
     def prompt(self):
         intro = """\nInput:""" + self.input
-        user_defined_instruct = """\nInstructions: Identify whether this input belongs to """ + f"""{self.facet}""" + """ and output yes or no."""
+        user_defined_instruct = """\nInstructions: Identify whether the input belongs to """ + f"""{self.facet}""" + """ and output yes or no."""
         output = """\Output:"""
         if self.description and self.example:
             context = self.des_context() + self.ex_context()
@@ -40,6 +40,7 @@ class Template:
             context = self.ex_context()
 
         prompt = user_defined_instruct + context + intro + output
+        # st.markdown(prompt)
         return prompt 
     
 class GPT:
@@ -48,7 +49,7 @@ class GPT:
 
     def generate_1(self):
         GPT_response = openai.Completion.create(
-            model= 'text-babbage-001',
+            model= 'text-curie-001',
             prompt= self.prompt,
             max_tokens=128,
             temperature=0,

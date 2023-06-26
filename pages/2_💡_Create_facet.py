@@ -41,6 +41,7 @@ st.markdown("""
 @st.cache_data()
 def load_data(url):
     data = pd.read_csv(url)
+    data['similarity_numeric'] = 0
     return data
 
 @st.cache_resource()
@@ -155,7 +156,7 @@ with col1:
     edited_df = GridOptionsBuilder.from_dataframe(df_before)
     edited_df.configure_column('tweet_text', wrapText=True, autoHeight=True)
     edited_df.configure_column('tweet_text', header_name='tweets (click to add)', **{'width':1000})
-    edited_df.configure_selection(selection_mode="single")
+    edited_df.configure_selection(selection_mode="single", use_checkbox=True)
     # edited_df.configure_grid_options(onRowSelected=delect_js)
     gridOptions = edited_df.build()
     grid_table = AgGrid(df_before, 
@@ -181,7 +182,7 @@ with col2:
     selected_df.configure_column('label', editable=True)
     selected_df.configure_column('tweet_text', wrapText=True, autoHeight=True, editable = True)
     selected_df.configure_column('tweet_text', header_name='selected tweets (click to remove)', **{'width':1000})
-    selected_df.configure_selection(selection_mode="single")
+    selected_df.configure_selection(selection_mode="single", use_checkbox=True)
     selected_df.configure_grid_options(onRowSelected=delect_js)
     gridOptions = selected_df.build()
     selected_table = AgGrid(df_middle, 
@@ -223,8 +224,8 @@ for idx, row in selected_table.data.iterrows():
 final_submission = st.button('Confirm and add new criterion', type='primary')
 if final_submission:
     if facet_name and (prompts_1 or prompts_2):
-        st.warning("The GPT is processing your texts. Don't leave this page otherwise the data will be lost.")
         if facet_name not in [items['facet_name'] for items in st.session_state['user_defined_facet']]:
+            message = st.warning("The GPT is processing your texts. Don't leave this page otherwise the data will be lost.")
             # record user input in session state
             st.session_state['user_defined_facet_number'] += 1
             t = st.session_state['user_defined_facet_number']
@@ -235,34 +236,35 @@ if final_submission:
             if prompts_2:
                 st.session_state['user_defined_prompts'].append({'prompt':prompts_2})
             # request GPT
-            k = 50
+            # k = 50
             GPT_response_list = []
             # progress_text = "The GPT is processing your texts"
             progress_bar = st.progress(0)
             percent_complete = 0
             ## generate prompts
-            for text in df['tweet_text'][0:k]:
+            for text in df['tweet_text']:
                 prompt = Template(facet_name, text, prompts_1, prompts_2)
                 # st.markdown(prompt.prompt())
                 GPT_response = GPT(prompt.prompt())
                 GPT_response_list.append(GPT_response.generate_1())
                 progress_bar.progress(percent_complete)
                 percent_complete = percent_complete + 1/len(df)
-            for text in df['tweet_text'][k::]:
-                progress_bar.progress(percent_complete)
-                percent_complete = percent_complete + 1/len(df)
+            # for text in df['tweet_text'][k::]:
+            #     progress_bar.progress(percent_complete)
+            #     percent_complete = percent_complete + 1/len(df)
             time.sleep(0.1)    
             progress_bar.progress(100)
-            new_facet_answer = [item[0] for item in GPT_response_list] + generate_random_boolean(df)[k::]
-            new_facet_prob = [item[1] for item in GPT_response_list] + generate_random(df)[k::]
-            # new_facet_answer = [item[0] for item in GPT_response_list]
-            # new_facet_prob = [item[1] for item in GPT_response_list]
+            # new_facet_answer = [item[0] for item in GPT_response_list] + generate_random_boolean(df)[k::]
+            # new_facet_prob = [item[1] for item in GPT_response_list] + generate_random(df)[k::]
+            new_facet_answer = [item[0] for item in GPT_response_list]
+            new_facet_prob = [item[1] for item in GPT_response_list]
             df[[facet_name, facet_name + '_prob']] = list(zip(new_facet_answer, new_facet_prob))
             # generate random number for testing
             # df[facet_name] = generate_random_boolean(df)
             # df[facet_name + '_prob'] = generate_random(df)
             # st.dataframe(df)
             st.session_state['GPT_filtered_data'] = df
+            # message.empty
             st.success('You have successfully added the new facet to the facet browsing, go back and play with it!', icon="✅")
         else:
             st.warning('You have already created this facet. Please give it a different name for the new facet.', icon="👻")
