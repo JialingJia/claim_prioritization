@@ -11,7 +11,7 @@ def load_data(url):
     data = pd.read_csv(url)
     return data
 
-TEST_URL = './user_test_data_cleaned.csv'
+TEST_URL = './user_test_data_cleaned_low.csv'
 data = load_data(TEST_URL)
 
 st.markdown("""
@@ -53,9 +53,9 @@ def draw_graph(data, name, prob):
     fig.update_layout(showlegend=False, height=50, margin=dict(l=0, r=0, t=0, b=0))
     fig.update_layout(yaxis={'visible': False, 'showticklabels': False}, xaxis={'visible': False, 'showticklabels': False})
     if name + '_slider' in st.session_state:
-        fig.add_vrect(x0=st.session_state[name + '_slider'][0]*10, x1=st.session_state[name + '_slider'][1]*10,fillcolor="rgba(255, 75, 75, 0.35)", opacity=0.5,layer="below", line_width=1.5, line_color="rgba(255, 75, 75, 0.7)")
+        fig.add_vrect(x0=st.session_state[name + '_slider'][0]*10, x1=st.session_state[name + '_slider'][1]*10 + 0.06,fillcolor="rgba(255, 75, 75, 0.35)", opacity=0.5,layer="below", line_width=1.5, line_color="rgba(255, 75, 75, 0.7)")
     else:
-        fig.add_vrect(x0=0.0, x1=10.0,fillcolor="rgba(255, 75, 75, 0.35)", opacity=0.5,layer="below", line_width=1.5, line_color="rgba(255, 75, 75, 0.7)")
+        fig.add_vrect(x0=0.00, x1=10.10,fillcolor="rgba(255, 75, 75, 0.35)", opacity=0.5,layer="below", line_width=1.5, line_color="rgba(255, 75, 75, 0.7)")
     graph = st.plotly_chart(fig, theme='streamlit', config={'staticPlot': True}, use_container_width=True)
     return graph
 
@@ -87,7 +87,7 @@ with col1:
     if test_select:
         st.session_state.verifiable = False
         draw_graph(data, 'verifiable', 'verifiable_numeric')
-        test_slider = st.slider('Select a range of values',0.00, 1.00, (0.50, 1.00), format="%f",
+        test_slider = st.slider('Select a range of values',0.00, 1.00, (0.00, 1.00), format="%f",
                                     key='verifiable_slider', disabled=st.session_state.verifiable, label_visibility='collapsed')
         st.caption(f'Claims of which the probability predicted to be verifiable between **:red[{test_slider[0]}]** and **:red[{test_slider[1]}]** will be displayed.')
     else:

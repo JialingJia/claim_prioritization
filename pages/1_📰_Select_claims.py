@@ -173,7 +173,7 @@ def split_frame(data, rows):
     return data
 
 # load data
-TEST_URL = './user_test_data_cleaned.csv'
+TEST_URL = './user_test_data_cleaned_low.csv'
 original_data = load_data(TEST_URL)
 if st.session_state['GPT_filtered_data'].empty:
     init_data = original_data
@@ -202,7 +202,7 @@ with st.sidebar:
             draw_graph(df_filter_data, 'verifiable', 'verifiable_numeric')
             if verifiable_weight_slider == 0.00:
                 st.session_state.verifiable = True
-            verifiable_slider = st.slider('Select a range of values',0.00, 1.00, (0.50, 1.00), format="%f",
+            verifiable_slider = st.slider('Select a range of values',0.00, 1.00, (0.00, 1.00), format="%f",
                                         key='verifiable_slider', disabled=st.session_state.verifiable, label_visibility='collapsed')
     else:
         verifiable_weight_slider = 0
@@ -211,7 +211,7 @@ with st.sidebar:
     
     col1, col2 = st.columns([3.4, 1])
     with col1:
-        false_info = st.checkbox('False information', help="The tweet appears to contain false information")
+        false_info = st.checkbox('Likely to be false', help="The tweet appears to contain false information")
     with col2:
         if false_info:
             false_info_select = tog.st_toggle_switch(label=None, key='false_info_select', inactive_color='rgba(151, 166, 195, 1)', active_color='rgb(255, 75, 75)', track_color='rgba(151, 166, 195, 0.5)')
@@ -222,7 +222,7 @@ with st.sidebar:
             draw_graph(df_filter_data, 'false_info', 'false_info_numeric')
             if false_info_weight_slider == 0.00:
                 st.session_state.false_info = True
-            false_info_slider = st.slider('Select a range of values',0.0, 1.0, (0.5, 1.0), format="%f",
+            false_info_slider = st.slider('Select a range of values',0.0, 1.0, (0.0, 1.0), format="%f",
                                         key='false_info_slider', disabled=st.session_state.false_info, label_visibility='collapsed')
     else:
         false_info_weight_slider = 0
@@ -231,27 +231,7 @@ with st.sidebar:
     
     col1, col2 = st.columns([3.4, 1])
     with col1:
-        public_interest = st.checkbox('Public interest', help="The tweet has an effect on or will be of interest to the general public.")
-    with col2:
-        if public_interest:
-            interest_to_public_select = tog.st_toggle_switch(label=None, key='interest_to_public_select', inactive_color='rgba(151, 166, 195, 1)', active_color='rgb(255, 75, 75)', track_color='rgba(151, 166, 195, 0.5)')
-    if public_interest:
-        interest_to_public_weight_slider = st.slider('interest_to_public', key='interest_to_public_weight', min_value=0.0, value=0.5, max_value=1.0, format="%f", label_visibility='collapsed')
-        if interest_to_public_select:
-            st.session_state.interest_to_public = False
-            if interest_to_public_weight_slider == 0.00:
-                st.session_state.interest_to_public = True
-            draw_graph(df_filter_data, 'interest_to_public', 'interest_to_public_numeric')
-            interest_to_public_slider = st.slider('Select a range of values',0.0, 1.0, (0.5, 1.0), format="%f",
-                                        key='interest_to_public_slider', disabled=st.session_state.interest_to_public, label_visibility='collapsed')
-    else:
-        interest_to_public_weight_slider = 0
-        
-    # st.markdown("""<hr style="margin:1em 0px" /> """, unsafe_allow_html=True)
-    
-    col1, col2 = st.columns([3.4, 1])
-    with col1:
-        general_harm = st.checkbox('General harm', help="The tweet appears to be harmful to society, people, company, or products.")
+        general_harm = st.checkbox('Likely to cause harm', help="The tweet appears to be harmful to society, people, company, or products.")
     with col2:
         if general_harm:
             general_harm_select = tog.st_toggle_switch(label=None, key='general_harm_select', inactive_color='rgba(151, 166, 195, 1)', active_color='rgb(255, 75, 75)', track_color='rgba(151, 166, 195, 0.5)')
@@ -262,10 +242,30 @@ with st.sidebar:
             if general_harm_weight_slider == 0.00:
                 st.session_state.general_harm = True
             draw_graph(df_filter_data, 'general_harm', 'general_harm_numeric')
-            general_harm_slider = st.slider('Select a range of values',0.0, 1.0, (0.5, 1.0), format="%f",
+            general_harm_slider = st.slider('Select a range of values',0.0, 1.0, (0.0, 1.0), format="%f",
                                         key='general_harm_slider', disabled=st.session_state.general_harm, label_visibility='collapsed')
     else:
         general_harm_weight_slider = 0
+        
+    # st.markdown("""<hr style="margin:1em 0px" /> """, unsafe_allow_html=True)
+
+    col1, col2 = st.columns([3.4, 1])
+    with col1:
+        public_interest = st.checkbox('Interest to the public', help="The tweet has an effect on or will be of interest to the general public.")
+    with col2:
+        if public_interest:
+            interest_to_public_select = tog.st_toggle_switch(label=None, key='interest_to_public_select', inactive_color='rgba(151, 166, 195, 1)', active_color='rgb(255, 75, 75)', track_color='rgba(151, 166, 195, 0.5)')
+    if public_interest:
+        interest_to_public_weight_slider = st.slider('interest_to_public', key='interest_to_public_weight', min_value=0.0, value=0.5, max_value=1.0, format="%f", label_visibility='collapsed')
+        if interest_to_public_select:
+            st.session_state.interest_to_public = False
+            if interest_to_public_weight_slider == 0.00:
+                st.session_state.interest_to_public = True
+            draw_graph(df_filter_data, 'interest_to_public', 'interest_to_public_numeric')
+            interest_to_public_slider = st.slider('Select a range of values',0.0, 1.0, (0.0, 1.0), format="%f",
+                                        key='interest_to_public_slider', disabled=st.session_state.interest_to_public, label_visibility='collapsed')
+    else:
+        interest_to_public_weight_slider = 0 
         
     # st.markdown("""<hr style="margin:1em 0px" /> """, unsafe_allow_html=True)
 
@@ -282,7 +282,7 @@ with st.sidebar:
             if attention_to_fact_check_weight_slider == 0.00:
                 st.session_state.attention_to_fact_check = True
             draw_graph(df_filter_data, 'attention_to_fact_check', 'attention_to_fact_check_numeric')
-            attention_to_fact_check_slider = st.slider('Select a range of values',0.0, 1.0, (0.5, 1.0), format="%f",
+            attention_to_fact_check_slider = st.slider('Select a range of values',0.0, 1.0, (0.0, 1.0), format="%f",
                                         key='attention_to_fact_check_slider', disabled=st.session_state.attention_to_fact_check, label_visibility='collapsed')
     else:
         attention_to_fact_check_weight_slider = 0
@@ -326,7 +326,7 @@ with st.sidebar:
                     if new_facet_weight_slider == 0.00:
                         st.session_state[new_facet] = True
                     draw_graph(df_filter_data, new_facet, new_facet + "_prob")
-                    new_facet_slider = st.slider('Select a range of values',0.0, 1.0, (0.5, 1.0), format="%f",
+                    new_facet_slider = st.slider('Select a range of values',0.0, 1.0, (0.0, 1.0), format="%f",
                                             key=new_facet_slider, disabled=st.session_state[new_facet], label_visibility='collapsed')
             else:
                 # new_facet_weight_slider = new_facet + '_weight_slider'
@@ -445,13 +445,13 @@ edited_df.configure_column('tweet_text', header_name='Select claims', **{'width'
 edited_df.configure_selection(selection_mode="multiple", use_checkbox=True)
 gridOptions = edited_df.build()
 grid_table = AgGrid(df_render, 
+                            reload_data = False,
                             update_mode=GridUpdateMode.SELECTION_CHANGED,
                             gridOptions = gridOptions,
                             fit_columns_on_grid_load=True,
                             height = 800,
                             width = '100%',
-                            custom_css = {".ag-cell-value": {'font-size': '16px', 'line-height': '22px','padding': '10px'}, "#gridToolBar": {'display':'none'}},
-                            reload_data = False
+                            custom_css = {".ag-cell-value": {'font-size': '16px', 'line-height': '22px','padding': '10px'}, "#gridToolBar": {'display':'none'}}
                             )
     # selected_claims = grid_table['data']
 selected_claims = grid_table['selected_rows']
@@ -464,9 +464,9 @@ if st.session_state['user_defined_facet']:
 propability_range = []
 for item in criteria_list:
     try:
-        propability_range.append(st.session_state[item + "_slider"])
+        propability_range.append({item:st.session_state[item + "_slider"]})
     except:
-        pass
+        propability_range.append({item:[0,0]})
 
 logger = [{'selected_claims': selected_claims}, {'criteria_list': criteria_list}, {'criteria_weight': weight_slider_list}, {'criteria_probability_range': propability_range}, {'user_prompts': st.session_state['user_defined_prompts']}]
 
