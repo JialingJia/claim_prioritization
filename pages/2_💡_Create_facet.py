@@ -222,8 +222,8 @@ for idx, row in selected_table.data.iterrows():
 # prompts_2 = st.session_state.temp_example
 final_submission = st.button('Confirm and add new criterion', type='primary')
 if final_submission:
-    st.warning("The GPT is processing your texts. Don't leave this page otherwise the data will be lost.")
     if facet_name and (prompts_1 or prompts_2):
+        st.warning("The GPT is processing your texts. Don't leave this page otherwise the data will be lost.")
         if facet_name not in [items['facet_name'] for items in st.session_state['user_defined_facet']]:
             # record user input in session state
             st.session_state['user_defined_facet_number'] += 1

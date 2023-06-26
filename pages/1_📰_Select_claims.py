@@ -70,6 +70,7 @@ st.markdown("""
 @st.cache_data()
 def load_data(url):
     data = pd.read_csv(url)
+    data['similarity_numeric'] = 0
     return data
 
 @st.cache_data(show_spinner=False)
@@ -161,7 +162,8 @@ def re_rank(data):
             new_facet = item['facet_name']
             # new_facet_weight = new_facet + '_weight_slider'
             data['weighted_score'] = data['weighted_score'] + data[new_facet]*data[new_facet + "_prob"]*st.session_state[new_facet + '_weight_slider']
-
+    if data['similarity_numeric'].empty != True:
+        data['weighted_score'] = data['weighted_score'] + data['similarity_numeric']
     if sum(data['weighted_score']) != 0:
         data = data.sort_values(by='weighted_score', ascending=False)
     else:
