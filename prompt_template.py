@@ -30,8 +30,8 @@ class Template:
 
     def prompt(self):
         intro = """\nInput:""" + self.input
-        user_defined_instruct = """\nInstructions: Identify whether the input belongs to """ + f"""{self.facet}""" + """ and output yes or no."""
-        output = """\Output:"""
+        user_defined_instruct = """\nIdentify whether the input text belongs to """ + f"""{self.facet}""" + """ and output yes or no."""
+        output = """\nOutput:"""
         if self.description and self.example:
             context = self.des_context() + self.ex_context()
         elif self.description:

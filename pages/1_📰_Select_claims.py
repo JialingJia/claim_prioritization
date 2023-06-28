@@ -118,7 +118,7 @@ def similarity_search(query, data):
     search_model = load_sentenceBert()
     query_embedding = search_model.encode(query, convert_to_tensor=True)
     corpus_embedding = load_embedding()
-    top_k = util.semantic_search(query_embedding, corpus_embedding, top_k=len(data))
+    top_k = util.semantic_search(query_embedding, corpus_embedding, top_k=len(init_data))
     top_id = [i['corpus_id'] for i in top_k[0]]
     sim_score = {}
     for idx, item in zip(top_id, [i['score'] for i in top_k[0]]):
