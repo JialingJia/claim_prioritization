@@ -21,7 +21,7 @@ st.markdown("""
     #     display: none;
     # }
     ::-webkit-scrollbar {
-        width: 10px;
+        width: 5px;
     }
     ::-webkit-scrollbar-track {
         background: #f1f1f1;
@@ -98,12 +98,14 @@ if 'user_defined_facet_number' not in st.session_state:
     st.session_state['GPT_filtered_data'] = pd.DataFrame([])
     st.session_state.selected_claims = []
     st.session_state.value_watcher = []
+    st.session_state.similarity_weight_boolean = True
 
 st.session_state.verifiable = True
 st.session_state.false_info = True
 st.session_state.interest_to_public = True
 st.session_state.general_harm = True
 st.session_state.attention_to_fact_check = True
+# st.session_state.similarity_weight_boolean = True
 # st.session_state.government_interest = True
 # st.session_state['search'] = ''
 
@@ -129,7 +131,7 @@ def similarity_search(query, data):
             new_id.append(i)
     data = init_data.iloc[new_id]
     data['similarity_numeric'] = [sim_score[i] for i in new_id]
-    data['weighted_score'] = data['weighted_score'] + data['similarity_numeric']
+    data['weighted_score'] = data['weighted_score'] + data['similarity_numeric']*0.5
     # st.write(data)
     data = data.sort_values(by='weighted_score', ascending=False)
     # st.write(data)
@@ -163,7 +165,7 @@ def re_rank(data):
             # new_facet_weight = new_facet + '_weight_slider'
             data['weighted_score'] = data['weighted_score'] + data[new_facet]*data[new_facet + "_prob"]*st.session_state[new_facet + '_weight_slider']
     if data['similarity_numeric'].empty != True:
-        data['weighted_score'] = data['weighted_score'] + data['similarity_numeric']
+        data['weighted_score'] = data['weighted_score'] + data['similarity_numeric']*similarity_weight_slider
     if sum(data['weighted_score']) != 0:
         data = data.sort_values(by='weighted_score', ascending=False)
     else:
@@ -184,6 +186,10 @@ else:
 
 df_filter_data = init_data
 # layout
+
+## search
+query_search = st.radio("xx", ('Boolean Search', 'Similarity Search'), horizontal=True, label_visibility='collapsed')
+query = st.text_input("search:", label_visibility="collapsed", placeholder="search claims using keywords")
 
 # sidebar
 
@@ -289,18 +295,15 @@ with st.sidebar:
     else:
         attention_to_fact_check_weight_slider = 0
 
-    # slider = st.slider('Select slider:', 
-    #                    min_value=0,
-    #                    value=5,
-    #                    max_value=10,
-    #                    label_visibility='collapsed')
+    if query_search == 'Similarity Search' and query:
+        st.markdown("""<hr style="margin:1em 0px" /> """, unsafe_allow_html=True)
+        st.markdown('## Query similarity')
+        similarity_weight_slider = st.slider('Query similarity weight', key='query_similarity_weight', min_value=0.0, value=0.5, max_value=1.0, format="%f", label_visibility='hidden')
+        df_filter_data = similarity_search(query, df_filter_data)
+    else:
+        similarity_weight_slider = 0
     
-    # government_interest_select = st.checkbox('Interest to government authorities')
-    # if government_interest_select:
-    #     st.session_state.government_interest = False
-    # government_interest_slider = st.slider('Select a range of values',0.0, 10.0, (0.0, 10.0), format="%d",
-    #                               key='government_interest_slider', disabled=st.session_state.government_interest, label_visibility='collapsed')
-    
+
     weight_slider_list = [verifiable_weight_slider, false_info_weight_slider, interest_to_public_weight_slider, general_harm_weight_slider, attention_to_fact_check_weight_slider]
 
     st.markdown("""<hr style="margin:1em 0px" /> """, unsafe_allow_html=True)
@@ -341,10 +344,6 @@ with st.sidebar:
     reset = st.button('reset customized facet', type="secondary", disabled=st.session_state.reset)
 
 # body
-
-## search
-query_search = st.radio("xx", ('Boolean Search', 'Similarity Search'), horizontal=True, label_visibility='collapsed')
-query = st.text_input("search:", label_visibility="collapsed", placeholder="search claims using keywords")
 
 ## filter data
 df_filter_data = re_rank(df_filter_data)
@@ -389,8 +388,10 @@ if st.session_state['user_defined_facet']:
 ## re-rank data based on user interactions
 # st.dataframe(init_data)
 # st.dataframe(df_filter_data)
-if query_search == 'Similarity Search' and query:
-    df_filter_data = similarity_search(query, df_filter_data)
+# if query_search == 'Similarity Search' and query:
+#     df_filter_data = similarity_search(query, df_filter_data)
+    # st.session_state.similarity_weight_boolean = False
+    # st.write(st.session_state.similarity_weight_boolean)
 if query_search == 'Boolean Search' and query:
     df_filter_data = boolean_search(query, df_filter_data)
 # st.write(weight_slider_list, st.session_state.value_watcher)

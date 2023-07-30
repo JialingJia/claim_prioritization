@@ -245,7 +245,7 @@ if final_submission:
         ## generate prompts
         for text in df['tweet_text']:
             prompt = Template(facet_name, text, prompts_1, prompts_2)
-            # st.markdown(prompt.prompt())
+            # st.write(prompt.prompt())
             GPT_response = GPT(prompt.prompt())
             GPT_response_list.append(GPT_response.generate_1())
             progress_bar.progress(percent_complete)

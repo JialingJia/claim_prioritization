@@ -14,24 +14,24 @@ class Template:
         self.example = example
 
     def des_context(self):
-        context = """\nContext:""" + self.description
+        context = """\n###\nContext:""" + self.description
         return context
 
     def ex_context(self):
         # context = """\nHere are some examples that match the criterion""" + self.facet
-        context = """\n"""
+        # context = """\n###\n"""
         for idx, example in enumerate(self.example):
             if example[1] == 1:
-                context_example = """\nInput:""" + example[0] + """\nOutput:yes"""
+                context_example = """\n###\nInput: """ + example[0] + """\n###\nOutput: yes"""
             if example[1] == 0:
-                context_example = """\nInput:""" + example[0] + """\nOutput:no"""
-            context = context + context_example
+                context_example = """\n###\nInput: """ + example[0] + """\n###\nOutput: no"""
+            context = context_example
         return context
 
     def prompt(self):
-        intro = """\nInput:""" + self.input
-        user_defined_instruct = """\nIdentify whether the input text belongs to """ + f"""{self.facet}""" + """ and output yes or no."""
-        output = """\nOutput:"""
+        intro = """\n###\nInput:""" + self.input
+        user_defined_instruct = """\n###\nIdentify whether the input text belongs to """ + f"""{self.facet}""" + """ and output yes or no."""
+        output = """\n###\nOutput:"""
         if self.description and self.example:
             context = self.des_context() + self.ex_context()
         elif self.description:
@@ -60,8 +60,8 @@ class GPT:
         tokens = GPT_response['choices'][0]['logprobs']['tokens']
         tokens_prob = GPT_response['choices'][0]['logprobs']['top_logprobs']
 
-        yes_prob = 0.5
-        no_prob = 0.5
+        # yes_prob = 0.5
+        # no_prob = 0.5
         # st.write(tokens)
         # st.write(tokens_prob)
         for token, prob in zip(tokens, tokens_prob):
