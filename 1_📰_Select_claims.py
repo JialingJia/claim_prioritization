@@ -12,6 +12,8 @@ import streamlit_toggle as tog
 import streamlit.components.v1 as componentsvalue_watcher
 import plotly.figure_factory as ff
 import requests
+import datetime
+# import streamlit_analytics
 
 # page config
 st.set_page_config(layout="wide")
@@ -96,6 +98,12 @@ if 'user_defined_facet_number' not in st.session_state:
     st.session_state['user_defined_prompts'] = []
     st.session_state['user_defined_facet_number'] = 0
     st.session_state['GPT_filtered_data'] = pd.DataFrame([])
+    st.session_state['search_type'] = ['none']
+    st.session_state['search_query'] = ['none']
+    st.session_state['number_search'] = 0
+    st.session_state['number_slider_change'] = 0
+    st.session_state['start_time'] = 0
+    st.session_state['end_time'] = 0
     st.session_state.selected_claims = []
     st.session_state.value_watcher = []
     st.session_state.similarity_weight_boolean = True
@@ -177,7 +185,7 @@ def split_frame(data, rows):
     return data
 
 # load data
-TEST_URL = './user_test_data_cleaned_low.csv'
+TEST_URL = './user_test_data_cleaned.csv'
 original_data = load_data(TEST_URL)
 if st.session_state['GPT_filtered_data'].empty:
     init_data = original_data
@@ -186,6 +194,8 @@ else:
 
 df_filter_data = init_data
 # layout
+
+# streamlit_analytics.start_tracking()
 
 ## search
 query_search = st.radio("xx", ('Boolean Search', 'Similarity Search'), horizontal=True, label_visibility='collapsed')
@@ -204,7 +214,7 @@ with st.sidebar:
         if verifiable:
             verifiable_select = tog.st_toggle_switch(label=None, key='verifiable_select', inactive_color='rgba(151, 166, 195, 1)', active_color='rgb(255, 75, 75)', track_color='rgba(151, 166, 195, 0.5)')
     if verifiable:
-        verifiable_weight_slider = st.slider('Verifiable', key='verifiable_weight', min_value=0.0, value=0.5, max_value=1.0, format="%f", label_visibility='collapsed')
+        verifiable_weight_slider = st.slider('verifiable', key='verifiable_weight', min_value=0.0, value=0.5, max_value=1.0, format="%f", label_visibility='collapsed')
         if verifiable_select:
             st.session_state.verifiable = False
             draw_graph(df_filter_data, 'verifiable', 'verifiable_numeric')
@@ -471,10 +481,10 @@ for item in criteria_list:
     except:
         propability_range.append({item:[0,0]})
 
-logger = [{'selected_claims': selected_claims}, {'criteria_list': criteria_list}, {'criteria_weight': weight_slider_list}, {'criteria_probability_range': propability_range}, {'user_prompts': st.session_state['user_defined_prompts']}]
-
-# st.write(logger)
-json_string = json.dumps(logger)
+if query and query != st.session_state['search_query'][-1:][0]:
+    st.session_state['search_type'].append(query_search)
+    st.session_state['search_query'].append(query)
+    st.session_state['number_search']  = st.session_state['number_search'] + 1
 
 ## download logger
 if selected_claims:
@@ -482,15 +492,23 @@ if selected_claims:
 else:
     st.session_state.claim_selected = True
 
-claim_select_buttons = st.columns([1.6,1,4])
+claim_select_buttons = st.columns([1, 2, 4, 4])
 
 with claim_select_buttons[0]:
+    if st.button('Start logging', type='secondary'):
+        st.session_state['start_time'] = datetime.datetime.now().timestamp()
+
+logger = [{'user_id': st.experimental_user.email}, {'selected_claims': selected_claims}, {'criteria_list': criteria_list}, {'criteria_weight': weight_slider_list}, {'criteria_probability_range': propability_range}, {'user_prompts': st.session_state['user_defined_prompts']}, {'user_query': [st.session_state['search_query'], st.session_state['number_search'], st.session_state['search_type']]}, {'number_slider_change': st.session_state['number_slider_change']}, {'page': [current_page, batch_size, total_pages]}, {'time': [st.session_state['start_time'], datetime.datetime.now().timestamp()]}]
+
+json_string = json.dumps(logger)
+
+with claim_select_buttons[1]:
     st.download_button(
         label = f"Download selected claims ({len(selected_claims)})",
         data = json_string,
         file_name = f'page_{current_page}_{batch_size}_claims.json',
         mime='application/json',
-        disabled=st.session_state.claim_selected
+        disabled=st.session_state.claim_selected,
     )
 
 with st.sidebar:
@@ -503,4 +521,11 @@ with st.sidebar:
             del st.session_state['GPT_filtered_data']
             st.experimental_rerun()
 
+if st.session_state.value_watcher != weight_slider_list:
+    st.session_state['number_slider_change'] = st.session_state['number_slider_change'] + 1
+
 st.session_state.value_watcher = weight_slider_list
+
+# streamlit_analytics.stop_tracking()
+
+# st.write(logger)
