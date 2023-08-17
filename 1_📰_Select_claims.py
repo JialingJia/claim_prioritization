@@ -62,7 +62,7 @@ st.markdown("""
         visibility: hidden;
         padding-top: 0px;
     }
-    div.st-fg {
+    .st-bs {
         padding-top: 5px;
     }
     </style>
@@ -316,42 +316,42 @@ with st.sidebar:
 
     weight_slider_list = [verifiable_weight_slider, false_info_weight_slider, interest_to_public_weight_slider, general_harm_weight_slider, attention_to_fact_check_weight_slider]
 
-    st.markdown("""<hr style="margin:1em 0px" /> """, unsafe_allow_html=True)
-    st.markdown('## Customized')
+    # st.markdown("""<hr style="margin:1em 0px" /> """, unsafe_allow_html=True)
+    # st.markdown('## Customized')
 
-    if st.session_state['user_defined_facet']:
-        st.session_state.reset = False
-        for item in st.session_state['user_defined_facet']:
-            new_facet = item['facet_name']
-            new_facet_slider = new_facet + '_slider'
-            new_facet_check = new_facet + '_check'
-            col1, col2 = st.columns([3.4, 1])
-            with col1:
-                new_facet_check = st.checkbox("""{new_facet}""".format(new_facet=item['facet_name'].capitalize()), key=new_facet + '_check')
-            with col2:
-                if new_facet_check:
-                    new_facet_select = tog.st_toggle_switch(label=None, key=new_facet + '_select', inactive_color='rgba(151, 166, 195, 1)', active_color='rgb(255, 75, 75)', track_color='rgba(151, 166, 195, 0.5)')
-            # st.write(st.session_state[new_facet + '_check'])
-            if st.session_state[new_facet + '_check']:
-                new_facet_weight_slider = st.slider('xx', key=new_facet + '_weight_slider', min_value=0.0, value=0.0, max_value=1.0, format="%f", label_visibility='collapsed')
-                # st.write(new_facet_weight_slider)
-                weight_slider_list.append(st.session_state[new_facet + '_weight_slider'])
-                if new_facet_select:
-                    st.session_state[new_facet] = False
-                    if new_facet_weight_slider == 0.00:
-                        st.session_state[new_facet] = True
-                    draw_graph(df_filter_data, new_facet, new_facet + "_prob")
-                    new_facet_slider = st.slider('Select a range of values',0.0, 1.0, (0.0, 1.0), format="%f",
-                                            key=new_facet_slider, disabled=st.session_state[new_facet], label_visibility='collapsed')
-            else:
-                # new_facet_weight_slider = new_facet + '_weight_slider'
-                st.session_state[new_facet + '_weight_slider'] = 0
-    else:
-        st.session_state.reset = True
+    # if st.session_state['user_defined_facet']:
+    #     st.session_state.reset = False
+    #     for item in st.session_state['user_defined_facet']:
+    #         new_facet = item['facet_name']
+    #         new_facet_slider = new_facet + '_slider'
+    #         new_facet_check = new_facet + '_check'
+    #         col1, col2 = st.columns([3.4, 1])
+    #         with col1:
+    #             new_facet_check = st.checkbox("""{new_facet}""".format(new_facet=item['facet_name'].capitalize()), key=new_facet + '_check')
+    #         with col2:
+    #             if new_facet_check:
+    #                 new_facet_select = tog.st_toggle_switch(label=None, key=new_facet + '_select', inactive_color='rgba(151, 166, 195, 1)', active_color='rgb(255, 75, 75)', track_color='rgba(151, 166, 195, 0.5)')
+    #         # st.write(st.session_state[new_facet + '_check'])
+    #         if st.session_state[new_facet + '_check']:
+    #             new_facet_weight_slider = st.slider('xx', key=new_facet + '_weight_slider', min_value=0.0, value=0.0, max_value=1.0, format="%f", label_visibility='collapsed')
+    #             # st.write(new_facet_weight_slider)
+    #             weight_slider_list.append(st.session_state[new_facet + '_weight_slider'])
+    #             if new_facet_select:
+    #                 st.session_state[new_facet] = False
+    #                 if new_facet_weight_slider == 0.00:
+    #                     st.session_state[new_facet] = True
+    #                 draw_graph(df_filter_data, new_facet, new_facet + "_prob")
+    #                 new_facet_slider = st.slider('Select a range of values',0.0, 1.0, (0.0, 1.0), format="%f",
+    #                                         key=new_facet_slider, disabled=st.session_state[new_facet], label_visibility='collapsed')
+    #         else:
+    #             # new_facet_weight_slider = new_facet + '_weight_slider'
+    #             st.session_state[new_facet + '_weight_slider'] = 0
+    # else:
+    #     st.session_state.reset = True
 
-    st.markdown("""<br> """, unsafe_allow_html=True)
+    # st.markdown("""<br> """, unsafe_allow_html=True)
 
-    reset = st.button('reset customized facet', type="secondary", disabled=st.session_state.reset)
+    # reset = st.button('reset customized facet', type="secondary", disabled=st.session_state.reset)
 
 # body
 
@@ -511,15 +511,15 @@ with claim_select_buttons[1]:
         disabled=st.session_state.claim_selected,
     )
 
-with st.sidebar:
-    if reset:
-        st.error("Reset facet might delete the GPT-processed data. Do you really want to do this?")
-        if st.button("Yes I'm ready to rumble"):
-            del st.session_state['user_defined_facet']
-            del st.session_state['user_defined_prompts']
-            del st.session_state['user_defined_facet_number']
-            del st.session_state['GPT_filtered_data']
-            st.experimental_rerun()
+# with st.sidebar:
+#     if reset:
+#         st.error("Reset facet might delete the GPT-processed data. Do you really want to do this?")
+#         if st.button("Yes I'm ready to rumble"):
+#             del st.session_state['user_defined_facet']
+#             del st.session_state['user_defined_prompts']
+#             del st.session_state['user_defined_facet_number']
+#             del st.session_state['GPT_filtered_data']
+#             st.experimental_rerun()
 
 if st.session_state.value_watcher != weight_slider_list:
     st.session_state['number_slider_change'] = st.session_state['number_slider_change'] + 1
