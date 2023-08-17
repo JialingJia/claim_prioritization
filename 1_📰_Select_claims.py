@@ -459,7 +459,6 @@ edited_df.configure_selection(selection_mode="multiple", use_checkbox=True)
 gridOptions = edited_df.build()
 grid_table = AgGrid(df_render, 
                             reload_data = False,
-                            update_mode=GridUpdateMode.MODEL_CHANGED,
                             gridOptions = gridOptions,
                             fit_columns_on_grid_load=True,
                             height = 800,
