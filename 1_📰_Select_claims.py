@@ -102,7 +102,7 @@ if 'user_defined_facet_number' not in st.session_state:
     st.session_state['search_query'] = ['none']
     st.session_state['number_search'] = 0
     st.session_state['number_slider_change'] = 0
-    st.session_state['start_time'] = 0
+    st.session_state['start_time'] = datetime.datetime.now().timestamp()
     st.session_state['end_time'] = 0
     st.session_state.selected_claims = []
     st.session_state.value_watcher = []
@@ -451,22 +451,28 @@ if pages:
     df_render['tweet_id'] = df_render['tweet_id'].apply(str)
 else:
     df_render = pd.DataFrame(columns=['tweet_text'])
-edited_df = GridOptionsBuilder.from_dataframe(df_render)
-edited_df.configure_column('tweet_id', hide=True, cellDataType='string')
-edited_df.configure_column('tweet_text', wrapText=True, autoHeight=True)
-edited_df.configure_column('tweet_text', header_name='Select claims', **{'width':1000})
-edited_df.configure_selection(selection_mode="multiple", use_checkbox=True)
-gridOptions = edited_df.build()
-grid_table = AgGrid(df_render, 
-                            reload_data = False,
-                            gridOptions = gridOptions,
-                            fit_columns_on_grid_load=True,
-                            height = 800,
-                            width = '100%',
-                            custom_css = {".ag-cell-value": {'font-size': '16px', 'line-height': '22px','padding': '10px'}, "#gridToolBar": {'display':'none'}}
-                            )
-    # selected_claims = grid_table['data']
-selected_claims = grid_table['selected_rows']
+
+with st.form('my_form'):
+    edited_df = GridOptionsBuilder.from_dataframe(df_render)
+    edited_df.configure_column('tweet_id', hide=True, cellDataType='string')
+    edited_df.configure_column('tweet_text', wrapText=True, autoHeight=True)
+    edited_df.configure_column('tweet_text', header_name='Select claims', **{'width':1000})
+    edited_df.configure_selection(selection_mode="multiple", use_checkbox=True)
+    gridOptions = edited_df.build()
+    grid_table = AgGrid(df_render, 
+                                reload_data = False,
+                                gridOptions = gridOptions,
+                                fit_columns_on_grid_load=True,
+                                height = 800,
+                                width = '100%',
+                                custom_css = {".ag-cell-value": {'font-size': '16px', 'line-height': '22px','padding': '10px'}, "#gridToolBar": {'display':'none'}}
+                                )
+        # selected_claims = grid_table['data']
+    submitted = st.form_submit_button('confirm')
+    if submitted:
+        selected_claims = grid_table['selected_rows']
+    else:
+        selected_claims = []
 
 # logger
 criteria_list = ['verifiable', 'false_info', 'interest_to_public', 'attention_to_fact_check', 'general_harm']
@@ -491,17 +497,13 @@ if selected_claims:
 else:
     st.session_state.claim_selected = True
 
-claim_select_buttons = st.columns([1, 2, 4, 4])
-
-with claim_select_buttons[0]:
-    if st.button('Start logging', type='secondary'):
-        st.session_state['start_time'] = datetime.datetime.now().timestamp()
+claim_select_buttons = st.columns([2, 4, 4])
 
 logger = [{'user_id': st.experimental_user.email}, {'selected_claims': selected_claims}, {'criteria_list': criteria_list}, {'criteria_weight': weight_slider_list}, {'criteria_probability_range': propability_range}, {'user_prompts': st.session_state['user_defined_prompts']}, {'user_query': [st.session_state['search_query'], st.session_state['number_search'], st.session_state['search_type']]}, {'number_slider_change': st.session_state['number_slider_change']}, {'page': [current_page, batch_size, total_pages]}, {'time': [st.session_state['start_time'], datetime.datetime.now().timestamp()]}]
 
 json_string = json.dumps(logger)
 
-with claim_select_buttons[1]:
+with claim_select_buttons[0]:
     st.download_button(
         label = f"Download selected claims ({len(selected_claims)})",
         data = json_string,
