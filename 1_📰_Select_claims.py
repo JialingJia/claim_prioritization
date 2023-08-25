@@ -8,7 +8,6 @@ from st_aggrid.shared import GridUpdateMode, JsCode
 from pathlib import Path
 import joblib
 from sentence_transformers import SentenceTransformer, util
-import streamlit_toggle as tog
 import streamlit.components.v1 as componentsvalue_watcher
 import plotly.figure_factory as ff
 import requests
@@ -62,9 +61,6 @@ st.markdown("""
         visibility: hidden;
         padding-top: 0px;
     }
-    div.st-fg {
-        padding-top: 5px;
-    }
     </style>
     """,unsafe_allow_html=True)
 
@@ -94,6 +90,7 @@ def load_embedding():
 
 # session state
 if 'user_defined_facet_number' not in st.session_state:
+    st.session_state['logger'] = []
     st.session_state['user_defined_facet'] = []
     st.session_state['user_defined_prompts'] = []
     st.session_state['user_defined_facet_number'] = 0
@@ -104,8 +101,10 @@ if 'user_defined_facet_number' not in st.session_state:
     st.session_state['number_slider_change'] = 0
     st.session_state['start_time'] = datetime.datetime.now().timestamp()
     st.session_state['end_time'] = 0
+    st.session_state['claim_candidate'] = []
     st.session_state.selected_claims = []
     st.session_state.value_watcher = []
+    st.session_state.query_similarity = []
     st.session_state.similarity_weight_boolean = True
 
 st.session_state.verifiable = True
@@ -195,8 +194,6 @@ else:
 df_filter_data = init_data
 # layout
 
-# streamlit_analytics.start_tracking()
-
 ## search
 query_search = st.radio("xx", ('Boolean Search', 'Similarity Search'), horizontal=True, label_visibility='collapsed')
 query = st.text_input("search:", label_visibility="collapsed", placeholder="search claims using keywords")
@@ -207,12 +204,12 @@ with st.sidebar:
 
     st.markdown('## Preset')
 
-    col1, col2 = st.columns([3.4, 1])
+    col1, col2 = st.columns([6, 1])
     with col1:
         verifiable = st.checkbox('Verifiable', help="The tweet contains a verifiable factual claim.")
     with col2:
         if verifiable:
-            verifiable_select = tog.st_toggle_switch(label=None, key='verifiable_select', inactive_color='rgba(151, 166, 195, 1)', active_color='rgb(255, 75, 75)', track_color='rgba(151, 166, 195, 0.5)')
+            verifiable_select = st.toggle('', key='verifiable_select', label_visibility='hidden')
     if verifiable:
         verifiable_weight_slider = st.slider('verifiable', key='verifiable_weight', min_value=0.0, value=0.5, max_value=1.0, format="%f", label_visibility='collapsed')
         if verifiable_select:
@@ -227,12 +224,12 @@ with st.sidebar:
         
     # st.markdown("""<hr style="margin:1em 0px" /> """, unsafe_allow_html=True)
     
-    col1, col2 = st.columns([3.4, 1])
+    col1, col2 = st.columns([6, 1])
     with col1:
         false_info = st.checkbox('Likely to be false', help="The tweet appears to contain false information")
     with col2:
         if false_info:
-            false_info_select = tog.st_toggle_switch(label=None, key='false_info_select', inactive_color='rgba(151, 166, 195, 1)', active_color='rgb(255, 75, 75)', track_color='rgba(151, 166, 195, 0.5)')
+            false_info_select = st.toggle('', key='false_info_select', label_visibility='hidden')
     if false_info:
         false_info_weight_slider = st.slider('false_info', key='false_info_weight', min_value=0.0, value=0.5, max_value=1.0, format="%f", label_visibility='collapsed')
         if false_info_select:
@@ -247,12 +244,12 @@ with st.sidebar:
     
     # st.markdown("""<hr style="margin:1em 0px" /> """, unsafe_allow_html=True)
     
-    col1, col2 = st.columns([3.4, 1])
+    col1, col2 = st.columns([6, 1])
     with col1:
         general_harm = st.checkbox('Likely to cause harm', help="The tweet appears to be harmful to society, people, company, or products.")
     with col2:
         if general_harm:
-            general_harm_select = tog.st_toggle_switch(label=None, key='general_harm_select', inactive_color='rgba(151, 166, 195, 1)', active_color='rgb(255, 75, 75)', track_color='rgba(151, 166, 195, 0.5)')
+            general_harm_select = st.toggle('', key='general_harm_select', label_visibility='hidden')
     if general_harm:
         general_harm_weight_slider = st.slider('general_harm', key='general_harm_weight', min_value=0.0, value=0.5, max_value=1.0, format="%f", label_visibility='collapsed')
         if general_harm_select:
@@ -267,12 +264,12 @@ with st.sidebar:
         
     # st.markdown("""<hr style="margin:1em 0px" /> """, unsafe_allow_html=True)
 
-    col1, col2 = st.columns([3.4, 1])
+    col1, col2 = st.columns([6, 1])
     with col1:
         public_interest = st.checkbox('Interest to the public', help="The tweet has an effect on or will be of interest to the general public.")
     with col2:
         if public_interest:
-            interest_to_public_select = tog.st_toggle_switch(label=None, key='interest_to_public_select', inactive_color='rgba(151, 166, 195, 1)', active_color='rgb(255, 75, 75)', track_color='rgba(151, 166, 195, 0.5)')
+            interest_to_public_select = st.toggle('', key='interest_to_public_select', label_visibility='hidden')
     if public_interest:
         interest_to_public_weight_slider = st.slider('interest_to_public', key='interest_to_public_weight', min_value=0.0, value=0.5, max_value=1.0, format="%f", label_visibility='collapsed')
         if interest_to_public_select:
@@ -287,12 +284,12 @@ with st.sidebar:
         
     # st.markdown("""<hr style="margin:1em 0px" /> """, unsafe_allow_html=True)
 
-    col1, col2 = st.columns([3.4, 1])
+    col1, col2 = st.columns([6, 1])
     with col1:
         attention = st.checkbox('Attention to fact-checkers', help="A professional fact-checker should verify the claim in the tweet.")
     with col2:
         if attention:
-            attention_to_fact_check_select = tog.st_toggle_switch(label=None, key='attention_to_fact_check_select', inactive_color='rgba(151, 166, 195, 1)', active_color='rgb(255, 75, 75)', track_color='rgba(151, 166, 195, 0.5)')
+            attention_to_fact_check_select = st.toggle('', key='attention_to_fact_check_select', label_visibility='hidden')
     if attention:
         attention_to_fact_check_weight_slider = st.slider('attention_to_fact_check', key='attention_to_fact_check_weight', min_value=0.0, value=0.5, max_value=1.0, format="%f", label_visibility='collapsed')
         if attention_to_fact_check_select:
@@ -313,8 +310,13 @@ with st.sidebar:
     else:
         similarity_weight_slider = 0
     
+    weight_slider_list = [verifiable_weight_slider, false_info_weight_slider, general_harm_weight_slider, interest_to_public_weight_slider, attention_to_fact_check_weight_slider]
 
-    weight_slider_list = [verifiable_weight_slider, false_info_weight_slider, interest_to_public_weight_slider, general_harm_weight_slider, attention_to_fact_check_weight_slider]
+    if st.session_state.value_watcher != weight_slider_list:
+        st.session_state['number_slider_change'] = st.session_state['number_slider_change'] + 1
+
+    if st.session_state.query_similarity != similarity_weight_slider:
+        st.session_state['number_slider_change'] = st.session_state['number_slider_change'] + 1
 
     st.markdown("""<hr style="margin:1em 0px" /> """, unsafe_allow_html=True)
     st.markdown('## Customized')
@@ -325,12 +327,12 @@ with st.sidebar:
             new_facet = item['facet_name']
             new_facet_slider = new_facet + '_slider'
             new_facet_check = new_facet + '_check'
-            col1, col2 = st.columns([3.4, 1])
+            col1, col2 = st.columns([6, 1])
             with col1:
                 new_facet_check = st.checkbox("""{new_facet}""".format(new_facet=item['facet_name'].capitalize()), key=new_facet + '_check')
             with col2:
                 if new_facet_check:
-                    new_facet_select = tog.st_toggle_switch(label=None, key=new_facet + '_select', inactive_color='rgba(151, 166, 195, 1)', active_color='rgb(255, 75, 75)', track_color='rgba(151, 166, 195, 0.5)')
+                    new_facet_select = st.toggle('', key=new_facet + '_select', label_visibility='hidden')
             # st.write(st.session_state[new_facet + '_check'])
             if st.session_state[new_facet + '_check']:
                 new_facet_weight_slider = st.slider('xx', key=new_facet + '_weight_slider', min_value=0.0, value=0.0, max_value=1.0, format="%f", label_visibility='collapsed')
@@ -471,6 +473,8 @@ with st.form('my_form'):
     submitted = st.form_submit_button('confirm')
     if submitted:
         selected_claims = grid_table['selected_rows']
+        st.session_state['end_time'] = datetime.datetime.now().timestamp()
+        st.toast('Claims have been successfully selected!', icon="✅")
     else:
         selected_claims = []
 
@@ -486,31 +490,46 @@ for item in criteria_list:
     except:
         propability_range.append({item:[0,0]})
 
-if query and query != st.session_state['search_query'][-1:][0]:
-    st.session_state['search_type'].append(query_search)
-    st.session_state['search_query'].append(query)
+if query and [query_search, query, similarity_weight_slider] != st.session_state['search_query'][-1:][0]:
+    st.session_state['search_query'].append([query_search, query, similarity_weight_slider])
     st.session_state['number_search']  = st.session_state['number_search'] + 1
 
-## download logger
+logger = [
+    {'user_id': st.experimental_user.email}, 
+    {'selected_claims': selected_claims}, 
+    {'user_query': st.session_state['search_query'][1:-1]},
+    {'number_query': st.session_state['number_search'] - 1}, 
+    {'number_slider_change': st.session_state['number_slider_change'] - 1}, 
+        {'page': {
+            'current_page': current_page, 
+            'batch_size': batch_size, 
+            'total_pages': total_pages
+            }}, 
+        {'time': {
+            'start_time': st.session_state['start_time'],
+            'end_time': st.session_state['end_time']
+            }},
+    {'criteria_list': criteria_list}, 
+    {'criteria_weight': weight_slider_list}, 
+    {'criteria_probability_range': propability_range}, 
+    {'user_prompts': st.session_state['user_defined_prompts']}, 
+        ]
+
+## update start time
+
+st.session_state.value_watcher = weight_slider_list
+st.session_state.query_similarity = similarity_weight_slider
+
 if selected_claims:
     st.session_state.claim_selected = False
+    st.session_state['start_time'] = st.session_state['end_time']
+    st.session_state['logger'].append(logger)
+    ## clear previous log
+    st.session_state['search_query'] = ['none']
+    st.session_state['number_search'] = 0
+    st.session_state['number_slider_change'] = 0
 else:
     st.session_state.claim_selected = True
-
-claim_select_buttons = st.columns([2, 4, 4])
-
-logger = [{'user_id': st.experimental_user.email}, {'selected_claims': selected_claims}, {'criteria_list': criteria_list}, {'criteria_weight': weight_slider_list}, {'criteria_probability_range': propability_range}, {'user_prompts': st.session_state['user_defined_prompts']}, {'user_query': [st.session_state['search_query'], st.session_state['number_search'], st.session_state['search_type']]}, {'number_slider_change': st.session_state['number_slider_change']}, {'page': [current_page, batch_size, total_pages]}, {'time': [st.session_state['start_time'], datetime.datetime.now().timestamp()]}]
-
-json_string = json.dumps(logger)
-
-with claim_select_buttons[0]:
-    st.download_button(
-        label = f"Download selected claims ({len(selected_claims)})",
-        data = json_string,
-        file_name = f'page_{current_page}_{batch_size}_claims.json',
-        mime='application/json',
-        disabled=st.session_state.claim_selected,
-    )
 
 with st.sidebar:
     if reset:
@@ -521,12 +540,3 @@ with st.sidebar:
             del st.session_state['user_defined_facet_number']
             del st.session_state['GPT_filtered_data']
             st.experimental_rerun()
-
-if st.session_state.value_watcher != weight_slider_list:
-    st.session_state['number_slider_change'] = st.session_state['number_slider_change'] + 1
-
-st.session_state.value_watcher = weight_slider_list
-
-# streamlit_analytics.stop_tracking()
-
-# st.write(logger)

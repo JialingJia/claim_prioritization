@@ -266,7 +266,7 @@ if final_submission:
         # st.dataframe(df)
         st.session_state['GPT_filtered_data'] = df
         # message.empty
-        st.success('You have successfully added the new facet to the facet browsing, go back and play with it!', icon="✅")
+        st.toast('You have successfully added the new facet to the facet browsing, go back and play with it!', icon="✅")
         # else:
         #     st.warning('You have already created this facet. Please give it a different name for the new facet.', icon="👻")
     else:
