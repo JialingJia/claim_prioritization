@@ -490,15 +490,15 @@ for item in criteria_list:
     except:
         propability_range.append({item:[0,0]})
 
-if query and [query_search, query, similarity_weight_slider] != st.session_state['search_query'][-1:][0]:
+if query and [query_search, query, similarity_weight_slider] != st.session_state['search_query'][::-1][0]:
     st.session_state['search_query'].append([query_search, query, similarity_weight_slider])
     st.session_state['number_search']  = st.session_state['number_search'] + 1
 
 logger = [
     {'user_id': st.experimental_user.email}, 
     {'selected_claims': selected_claims}, 
-    {'user_query': st.session_state['search_query'][1:-1]},
-    {'number_query': st.session_state['number_search'] - 1}, 
+    {'user_query': st.session_state['search_query']},
+    {'number_query': st.session_state['number_search']}, 
     {'number_slider_change': st.session_state['number_slider_change'] - 1}, 
         {'page': {
             'current_page': current_page, 

@@ -26,7 +26,7 @@ if st.session_state['logger']:
 else:
     st.write("You haven't selected any claims~")
 
-# st.write(st.session_state['logger'])
+st.write(st.session_state['logger'])
 
 json_string = json.dumps([st.session_state['logger'], selected_claims])
 
