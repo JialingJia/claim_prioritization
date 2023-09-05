@@ -471,27 +471,6 @@ if pages:
 else:
     df_render = pd.DataFrame(columns=['tweet_text'])
 
-def ReadPictureFile(wch_fl):
-    try:
-        return base64.b64encode(open(wch_fl, 'rb').read()).decode()
-
-    except:
-        return ""
-
-thumbnail_renderer = JsCode("""
-        class ThumbnailRenderer {
-            init(params) {
-                this.eGui = document.createElement('img');
-                this.eGui.setAttribute('src', params.data.image);
-                this.eGui.setAttribute('width', '100');
-                this.eGui.setAttribute('height', 'auto');
-            }
-            getGui() {
-                return this.eGui;
-            }
-        }
-        """)
-
 tooltip_renderer = JsCode("""
         class CustomTooltip {
             init(params) {
@@ -502,22 +481,13 @@ tooltip_renderer = JsCode("""
                 console.log(url);
                           
                 eGui.classList.add('custom-tooltip');
-                eGui.innerHTML = `<img src="${url}" width="600px" height=auto>`;
+                eGui.innerHTML = `<img src="${url}" width="400px" height=auto>`;
             }
             getGui() {
                 return this.eGui;
             }
         }
         """)
-
-alert_renderer = JsCode("""
-        function (params) { 
-            const myWin = window.open("Topic", "wid", "toolbar=no,menubar=no,location=no,status=no,height=285,width=600, left=450,top=175");
-            myWin.innerHTML = `
-                        <span style='font-size: 24px; color:red;'>'hello'</span>
-                        `
-            myWin.focus();
-        }""")
 
 with st.form('my_form'):
     edited_df = GridOptionsBuilder.from_dataframe(df_render)
@@ -538,7 +508,7 @@ with st.form('my_form'):
                                 custom_css = {
                                     ".ag-cell-value": {'font-size': '16px', 'line-height': '22px','padding': '10px'}, 
                                     "#gridToolBar": {'display':'none'},
-                                    ".custom-tooltip": {'width': '600px', 'height': 'auto', 'overflow': 'hidden', 'box-shadow': '0 0 0.75rem grey'},
+                                    ".custom-tooltip": {'width': '400px', 'height': 'auto', 'overflow': 'hidden', 'box-shadow': '0 0 0.75rem grey'},
                                     ".custom-tooltip p": {'margin': '5px', 'white-space': 'nowrap'},
                                     ".custom-tooltip p:first-of-type": {'font-weight': 'bold'}
                                               },
