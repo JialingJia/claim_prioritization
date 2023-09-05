@@ -102,7 +102,7 @@ if 'user_defined_facet_number' not in st.session_state:
     st.session_state.value_watcher = []
     
 # load data
-TEST_URL = './user_test_data_cleaned.csv'
+TEST_URL = './final_test_data.csv'
 original_data = load_data(TEST_URL)
 if st.session_state['GPT_filtered_data'].empty:
     init_data = original_data

@@ -12,6 +12,8 @@ import streamlit.components.v1 as componentsvalue_watcher
 import plotly.figure_factory as ff
 import requests
 import datetime
+import base64
+from PIL import Image
 # import streamlit_analytics
 
 # page config
@@ -42,18 +44,18 @@ st.markdown("""
     .css-1629p8f h4 {
         font-weight: 300;
     }
-    label.st-bl {
-        padding-top: 9px;
-        padding-right: 0px;
-    }
-    label.st-d5 {
-        padding-top: 9px;
-        padding-right: 0px;
-    }
-    label.st-e2 {
-        padding-top: 9px;
-        padding-right: 0px;
-    }
+    # label.st-bl {
+    #     padding-top: 9px;
+    #     padding-right: 0px;
+    # }
+    # label.st-d5 {
+    #     padding-top: 9px;
+    #     padding-right: 0px;
+    # }
+    # label.st-e2 {
+    #     padding-top: 9px;
+    #     padding-right: 0px;
+    # }
     button[title="View fullscreen"]{
         visibility: hidden;
     }
@@ -61,6 +63,21 @@ st.markdown("""
         visibility: hidden;
         padding-top: 0px;
     }
+    .custom-tooltip {
+  width: 150px;
+  height: 70px;
+  border: 1px solid cornflowerblue;
+  overflow: hidden;
+}
+
+.custom-tooltip p {
+  margin: 5px;
+  white-space: nowrap;
+}
+
+.custom-tooltip p:first-of-type {
+  font-weight: bold;
+}
     </style>
     """,unsafe_allow_html=True)
 
@@ -184,7 +201,7 @@ def split_frame(data, rows):
     return data
 
 # load data
-TEST_URL = './user_test_data_cleaned.csv'
+TEST_URL = './final_test_data.csv'
 original_data = load_data(TEST_URL)
 if st.session_state['GPT_filtered_data'].empty:
     init_data = original_data
@@ -454,20 +471,78 @@ if pages:
 else:
     df_render = pd.DataFrame(columns=['tweet_text'])
 
+def ReadPictureFile(wch_fl):
+    try:
+        return base64.b64encode(open(wch_fl, 'rb').read()).decode()
+
+    except:
+        return ""
+
+thumbnail_renderer = JsCode("""
+        class ThumbnailRenderer {
+            init(params) {
+                this.eGui = document.createElement('img');
+                this.eGui.setAttribute('src', params.data.image);
+                this.eGui.setAttribute('width', '100');
+                this.eGui.setAttribute('height', 'auto');
+            }
+            getGui() {
+                return this.eGui;
+            }
+        }
+        """)
+
+tooltip_renderer = JsCode("""
+        class CustomTooltip {
+            init(params) {
+                const eGui = (this.eGui = document.createElement('div'));
+                const color = 'white';
+                const data = params.data.tweet_id;
+                const url = "https://raw.githubusercontent.com/JialingJia/houjiang-website/master/research_data/checkworthy_tweet/img/" + params.data.tweet_id + ".png" ;
+                console.log(url);
+                          
+                eGui.classList.add('custom-tooltip');
+                eGui.innerHTML = `<img src="${url}" width="600px" height=auto>`;
+            }
+            getGui() {
+                return this.eGui;
+            }
+        }
+        """)
+
+alert_renderer = JsCode("""
+        function (params) { 
+            const myWin = window.open("Topic", "wid", "toolbar=no,menubar=no,location=no,status=no,height=285,width=600, left=450,top=175");
+            myWin.innerHTML = `
+                        <span style='font-size: 24px; color:red;'>'hello'</span>
+                        `
+            myWin.focus();
+        }""")
+
 with st.form('my_form'):
     edited_df = GridOptionsBuilder.from_dataframe(df_render)
-    edited_df.configure_column('tweet_id', hide=True, cellDataType='string')
+    edited_df.configure_default_column(tooltipField="tweet_text")
+    edited_df.configure_column('tweet_id', hide=True)
+    edited_df.configure_column('tweet_text', tooltipComponent=tooltip_renderer)
     edited_df.configure_column('tweet_text', wrapText=True, autoHeight=True)
     edited_df.configure_column('tweet_text', header_name='Select claims', **{'width':1000})
     edited_df.configure_selection(selection_mode="multiple", use_checkbox=True)
+    edited_df.configure_grid_options(tooltipShowDelay=500, tooltipHideDelay=100000)
     gridOptions = edited_df.build()
     grid_table = AgGrid(df_render, 
                                 reload_data = False,
                                 gridOptions = gridOptions,
-                                fit_columns_on_grid_load=True,
+                                fit_columns_on_grid_load = True,
                                 height = 800,
                                 width = '100%',
-                                custom_css = {".ag-cell-value": {'font-size': '16px', 'line-height': '22px','padding': '10px'}, "#gridToolBar": {'display':'none'}}
+                                custom_css = {
+                                    ".ag-cell-value": {'font-size': '16px', 'line-height': '22px','padding': '10px'}, 
+                                    "#gridToolBar": {'display':'none'},
+                                    ".custom-tooltip": {'width': '600px', 'height': 'auto', 'overflow': 'hidden', 'box-shadow': '0 0 0.75rem grey'},
+                                    ".custom-tooltip p": {'margin': '5px', 'white-space': 'nowrap'},
+                                    ".custom-tooltip p:first-of-type": {'font-weight': 'bold'}
+                                              },
+                                allow_unsafe_jscode= True
                                 )
         # selected_claims = grid_table['data']
     submitted = st.form_submit_button('confirm')
