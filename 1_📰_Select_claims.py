@@ -35,9 +35,9 @@ st.markdown("""
     ::-webkit-scrollbar-thumb:hover {
         background: #555;
     }
-    .css-1oe5cao {
-        padding-top: 3rem;
-    }
+    # .css-1oe5cao {
+    #     padding-top: 3rem;
+    # }
     [data-testid=stVerticalBlock]{
         gap: 0.5rem;
     }
@@ -116,11 +116,13 @@ if 'user_defined_facet_number' not in st.session_state:
     st.session_state['search_query'] = ['none']
     st.session_state['number_search'] = 0
     st.session_state['number_slider_change'] = 0
+    st.session_state['number_similiarity_slider_change'] = 0
     st.session_state['start_time'] = datetime.datetime.now().timestamp()
     st.session_state['end_time'] = 0
     st.session_state['claim_candidate'] = []
+    st.session_state['time_series'] = [{'start': datetime.datetime.now().timestamp()}]
     st.session_state.selected_claims = []
-    st.session_state.value_watcher = []
+    st.session_state.value_watcher = [0,0,0,0]
     st.session_state.query_similarity = []
     st.session_state.similarity_weight_boolean = True
 
@@ -128,7 +130,7 @@ st.session_state.verifiable = True
 st.session_state.false_info = True
 st.session_state.interest_to_public = True
 st.session_state.general_harm = True
-st.session_state.attention_to_fact_check = True
+# st.session_state.attention_to_fact_check = True
 # st.session_state.similarity_weight_boolean = True
 # st.session_state.government_interest = True
 # st.session_state['search'] = ''
@@ -181,8 +183,7 @@ def re_rank(data):
     data['weighted_score'] = (data['verifiable']*data['verifiable_numeric']*verifiable_weight_slider
                                         + data['false_info']*data['false_info_numeric']*false_info_weight_slider
                                         + data['interest_to_public']*data['interest_to_public_numeric']*interest_to_public_weight_slider
-                                        + data['general_harm']*data['general_harm_numeric']*general_harm_weight_slider
-                                        + data['attention_to_fact_check']*data['attention_to_fact_check_numeric']*attention_to_fact_check_weight_slider)
+                                        + data['general_harm']*data['general_harm_numeric']*general_harm_weight_slider)
     if st.session_state['user_defined_facet']:
         for item in st.session_state['user_defined_facet']:
             new_facet = item['facet_name']
@@ -301,23 +302,23 @@ with st.sidebar:
         
     # st.markdown("""<hr style="margin:1em 0px" /> """, unsafe_allow_html=True)
 
-    col1, col2 = st.columns([6, 1])
-    with col1:
-        attention = st.checkbox('Attention to fact-checkers', help="A professional fact-checker should verify the claim in the tweet.")
-    with col2:
-        if attention:
-            attention_to_fact_check_select = st.toggle('', key='attention_to_fact_check_select', label_visibility='hidden')
-    if attention:
-        attention_to_fact_check_weight_slider = st.slider('attention_to_fact_check', key='attention_to_fact_check_weight', min_value=0.0, value=0.5, max_value=1.0, format="%f", label_visibility='collapsed')
-        if attention_to_fact_check_select:
-            st.session_state.attention_to_fact_check = False
-            if attention_to_fact_check_weight_slider == 0.00:
-                st.session_state.attention_to_fact_check = True
-            draw_graph(df_filter_data, 'attention_to_fact_check', 'attention_to_fact_check_numeric')
-            attention_to_fact_check_slider = st.slider('Select a range of values',0.0, 1.0, (0.0, 1.0), format="%f",
-                                        key='attention_to_fact_check_slider', disabled=st.session_state.attention_to_fact_check, label_visibility='collapsed')
-    else:
-        attention_to_fact_check_weight_slider = 0
+    # col1, col2 = st.columns([6, 1])
+    # with col1:
+    #     attention = st.checkbox('Attention to fact-checkers', help="A professional fact-checker should verify the claim in the tweet.")
+    # with col2:
+    #     if attention:
+    #         attention_to_fact_check_select = st.toggle('', key='attention_to_fact_check_select', label_visibility='hidden')
+    # if attention:
+    #     attention_to_fact_check_weight_slider = st.slider('attention_to_fact_check', key='attention_to_fact_check_weight', min_value=0.0, value=0.5, max_value=1.0, format="%f", label_visibility='collapsed')
+    #     if attention_to_fact_check_select:
+    #         st.session_state.attention_to_fact_check = False
+    #         if attention_to_fact_check_weight_slider == 0.00:
+    #             st.session_state.attention_to_fact_check = True
+    #         draw_graph(df_filter_data, 'attention_to_fact_check', 'attention_to_fact_check_numeric')
+    #         attention_to_fact_check_slider = st.slider('Select a range of values',0.0, 1.0, (0.0, 1.0), format="%f",
+    #                                     key='attention_to_fact_check_slider', disabled=st.session_state.attention_to_fact_check, label_visibility='collapsed')
+    # else:
+    #     attention_to_fact_check_weight_slider = 0
 
     if query_search == 'Similarity Search' and query:
         st.markdown("""<hr style="margin:1em 0px" /> """, unsafe_allow_html=True)
@@ -327,13 +328,12 @@ with st.sidebar:
     else:
         similarity_weight_slider = 0
     
-    weight_slider_list = [verifiable_weight_slider, false_info_weight_slider, general_harm_weight_slider, interest_to_public_weight_slider, attention_to_fact_check_weight_slider]
+    weight_slider_list = [verifiable_weight_slider, false_info_weight_slider, general_harm_weight_slider, interest_to_public_weight_slider]
 
     if st.session_state.value_watcher != weight_slider_list:
+        # st.write(st.session_state.value_watcher, weight_slider_list)
         st.session_state['number_slider_change'] = st.session_state['number_slider_change'] + 1
-
-    if st.session_state.query_similarity != similarity_weight_slider:
-        st.session_state['number_slider_change'] = st.session_state['number_slider_change'] + 1
+        st.session_state['time_series'].append({'slider': datetime.datetime.now().timestamp()})
 
     st.markdown("""<hr style="margin:1em 0px" /> """, unsafe_allow_html=True)
     st.markdown('## Customized')
@@ -396,10 +396,10 @@ if general_harm:
         df_filter_data = filter_data(df_filter_data, 'general_harm')
         df_filter_data = df_filter_data[df_filter_data['general_harm_numeric'].between(st.session_state['general_harm_slider'][0], st.session_state['general_harm_slider'][1])]
 
-if attention:
-    if attention_to_fact_check_select:
-        df_filter_data = filter_data(df_filter_data, 'attention_to_fact_check')
-        df_filter_data = df_filter_data[df_filter_data['attention_to_fact_check_numeric'].between(st.session_state['attention_to_fact_check_slider'][0], st.session_state['attention_to_fact_check_slider'][1])]
+# if attention:
+#     if attention_to_fact_check_select:
+#         df_filter_data = filter_data(df_filter_data, 'attention_to_fact_check')
+#         df_filter_data = df_filter_data[df_filter_data['attention_to_fact_check_numeric'].between(st.session_state['attention_to_fact_check_slider'][0], st.session_state['attention_to_fact_check_slider'][1])]
 
     # if government_interest_select:
     #     df_filter_data = filter_data(df_filter_data, 'general_harm')
@@ -517,14 +517,16 @@ with st.form('my_form'):
         # selected_claims = grid_table['data']
     submitted = st.form_submit_button('confirm')
     if submitted:
+        st.session_state['time_series'].append({'selection': datetime.datetime.now().timestamp()})
         selected_claims = grid_table['selected_rows']
         st.session_state['end_time'] = datetime.datetime.now().timestamp()
+        st.session_state['time_series'].append({'end': datetime.datetime.now().timestamp()})
         st.toast('Claims have been successfully selected!', icon="✅")
     else:
         selected_claims = []
 
 # logger
-criteria_list = ['verifiable', 'false_info', 'interest_to_public', 'attention_to_fact_check', 'general_harm']
+criteria_list = ['verifiable', 'false_info', 'general_harm', 'interest_to_public']
 if st.session_state['user_defined_facet']:
     for item in st.session_state['user_defined_facet']:
         criteria_list.append(item['facet_name'])
@@ -535,16 +537,22 @@ for item in criteria_list:
     except:
         propability_range.append({item:[0,0]})
 
-if query and [query_search, query, similarity_weight_slider] != st.session_state['search_query'][::-1][0]:
-    st.session_state['search_query'].append([query_search, query, similarity_weight_slider])
+if query and [query_search, query] != st.session_state['search_query'][::-1][0]:
+    st.session_state['search_query'].append([query_search, query])
     st.session_state['number_search']  = st.session_state['number_search'] + 1
+    st.session_state['time_series'].append({'search': datetime.datetime.now().timestamp()})
+
+if query and st.session_state.query_similarity != similarity_weight_slider:
+    st.session_state['number_similiarity_slider_change'] = st.session_state['number_similiarity_slider_change'] + 1
+    st.session_state['time_series'].append({'similarity_slider': datetime.datetime.now().timestamp()})
 
 logger = [
     {'user_id': st.experimental_user.email}, 
     {'selected_claims': selected_claims}, 
     {'user_query': st.session_state['search_query']},
     {'number_query': st.session_state['number_search']}, 
-    {'number_slider_change': st.session_state['number_slider_change'] - 1}, 
+    {'number_slider_change': st.session_state['number_slider_change']}, 
+    {'number_similiarity_slider_change': st.session_state['number_similiarity_slider_change']}, 
         {'page': {
             'current_page': current_page, 
             'batch_size': batch_size, 
@@ -557,7 +565,7 @@ logger = [
     {'criteria_list': criteria_list}, 
     {'criteria_weight': weight_slider_list}, 
     {'criteria_probability_range': propability_range}, 
-    {'user_prompts': st.session_state['user_defined_prompts']}, 
+    {'user_prompts': st.session_state['user_defined_prompts']}
         ]
 
 ## update start time

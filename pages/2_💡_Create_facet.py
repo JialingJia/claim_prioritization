@@ -10,6 +10,7 @@ from st_aggrid import AgGrid
 from st_aggrid.grid_options_builder import GridOptionsBuilder
 from st_aggrid.shared import GridUpdateMode, JsCode, DataReturnMode
 from prompt_template import Template, GPT
+import datetime
 
 
 # page config
@@ -116,8 +117,10 @@ st.subheader('Create and add new criterion')
 
 st.info(f'You are going to use GPT-3 to create new criteria to filter claims. Please provide **:red[detailed descriptions of the new criteria]** to GPT-3 so that it helps to preprocess claims that are more likely to match the new criteria.')
 
-
 facet_name = st.text_input(f'**Criterion name**: what is your new criterion?', placeholder="propaganda")
+
+# if facet_name:
+#     st.session_state['time_series'].append({'GPT_name': datetime.datetime.now().timestamp()})
 
 prompts_1 = st.text_area(f'**Descriptions**: how would you describe the new criterion?', 
                                      key='free_form_customized', 
@@ -223,6 +226,7 @@ for idx, row in selected_table.data.iterrows():
 # prompts_2 = st.session_state.temp_example
 final_submission = st.button('Confirm and add new criterion', type='primary')
 if final_submission:
+    st.session_state['time_series'].append({'GPT_start': datetime.datetime.now().timestamp()})
     if facet_name and (prompts_1 or prompts_2):
         if facet_name in [items['facet_name'] for items in st.session_state['user_defined_facet']]:
             facet_name = facet_name + "_new"
@@ -265,6 +269,8 @@ if final_submission:
         # df[facet_name + '_prob'] = generate_random(df)
         # st.dataframe(df)
         st.session_state['GPT_filtered_data'] = df
+        # record end time
+        st.session_state['time_series'].append({'GPT_end': datetime.datetime.now().timestamp()})
         # message.empty
         st.toast('You have successfully added the new facet to the facet browsing, go back and play with it!', icon="✅")
         # else:

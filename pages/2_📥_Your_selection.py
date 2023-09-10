@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import json
+import datetime
 
 # get random string of letters and digits
 selected_claims = []
@@ -28,7 +29,7 @@ else:
 
 # st.write(st.session_state['logger'])
 
-json_string = json.dumps([st.session_state['logger'], selected_claims])
+json_string = json.dumps([st.session_state['logger'], selected_claims, st.session_state['time_series']])
 
 st.download_button(
     label = f"Download task data",
@@ -37,3 +38,7 @@ st.download_button(
     mime='application/json',
     disabled=st.session_state.claim_selected
 )
+
+# st.write(st.session_state['time_series'])
+# st.write(st.session_state['number_slider_change'])
+# st.write(st.session_state['number_search'])
