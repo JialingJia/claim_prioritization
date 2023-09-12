@@ -491,9 +491,9 @@ tooltip_renderer = JsCode("""
 
 with st.form('my_form'):
     edited_df = GridOptionsBuilder.from_dataframe(df_render)
-    edited_df.configure_default_column(tooltipField="tweet_text")
+    # edited_df.configure_default_column(tooltipField="tweet_text")
     edited_df.configure_column('tweet_id', hide=True)
-    edited_df.configure_column('tweet_text', tooltipComponent=tooltip_renderer)
+    # edited_df.configure_column('tweet_text', tooltipComponent=tooltip_renderer)
     edited_df.configure_column('tweet_text', wrapText=True, autoHeight=True)
     edited_df.configure_column('tweet_text', header_name='Select claims', **{'width':1000})
     edited_df.configure_selection(selection_mode="multiple", use_checkbox=True)
