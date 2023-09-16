@@ -117,6 +117,8 @@ st.subheader('Create and add new criterion')
 
 st.info(f'You are going to use GPT-3 to create new criteria to filter claims. Please provide **:red[detailed descriptions of the new criteria]** to GPT-3 so that it helps to preprocess claims that are more likely to match the new criteria.')
 
+st.session_state['time_series'].append({'GPT_start': datetime.datetime.now().timestamp()})
+
 facet_name = st.text_input(f'**Criterion name**: what is your new criterion?', placeholder="propaganda")
 
 # if facet_name:
@@ -226,7 +228,6 @@ for idx, row in selected_table.data.iterrows():
 # prompts_2 = st.session_state.temp_example
 final_submission = st.button('Confirm and add new criterion', type='primary')
 if final_submission:
-    st.session_state['time_series'].append({'GPT_start': datetime.datetime.now().timestamp()})
     if facet_name and (prompts_1 or prompts_2):
         if facet_name in [items['facet_name'] for items in st.session_state['user_defined_facet']]:
             facet_name = facet_name + "_new"

@@ -63,21 +63,6 @@ st.markdown("""
         visibility: hidden;
         padding-top: 0px;
     }
-    .custom-tooltip {
-  width: 150px;
-  height: 70px;
-  border: 1px solid cornflowerblue;
-  overflow: hidden;
-}
-
-.custom-tooltip p {
-  margin: 5px;
-  white-space: nowrap;
-}
-
-.custom-tooltip p:first-of-type {
-  font-weight: bold;
-}
     </style>
     """,unsafe_allow_html=True)
 
@@ -493,11 +478,11 @@ with st.form('my_form'):
     edited_df = GridOptionsBuilder.from_dataframe(df_render)
     # edited_df.configure_default_column(tooltipField="tweet_text")
     edited_df.configure_column('tweet_id', hide=True)
-    # edited_df.configure_column('tweet_text', tooltipComponent=tooltip_renderer)
+    edited_df.configure_column('tweet_text', tooltipComponent=tooltip_renderer)
     edited_df.configure_column('tweet_text', wrapText=True, autoHeight=True)
     edited_df.configure_column('tweet_text', header_name='Select claims', **{'width':1000})
     edited_df.configure_selection(selection_mode="multiple", use_checkbox=True)
-    edited_df.configure_grid_options(tooltipShowDelay=500, tooltipHideDelay=100000)
+    # edited_df.configure_grid_options(tooltipShowDelay=1000, tooltipHideDelay=100000)
     gridOptions = edited_df.build()
     grid_table = AgGrid(df_render, 
                                 reload_data = False,
@@ -508,7 +493,8 @@ with st.form('my_form'):
                                 custom_css = {
                                     ".ag-cell-value": {'font-size': '16px', 'line-height': '22px','padding': '10px'}, 
                                     "#gridToolBar": {'display':'none'},
-                                    ".custom-tooltip": {'width': '400px', 'height': 'auto', 'overflow': 'hidden', 'box-shadow': '0 0 0.75rem grey'},
+                                    ".custom-tooltip": {'width': '400px', 'height': 'auto', 'overflow': 'hidden', 'box-shadow': '0 0 0.75rem grey',
+                                                    'position': 'fixed', 'pointer-events':'none'},
                                     ".custom-tooltip p": {'margin': '5px', 'white-space': 'nowrap'},
                                     ".custom-tooltip p:first-of-type": {'font-weight': 'bold'}
                                               },
