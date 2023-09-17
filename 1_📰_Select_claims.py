@@ -579,3 +579,5 @@ with st.sidebar:
             del st.session_state['user_defined_facet_number']
             del st.session_state['GPT_filtered_data']
             st.experimental_rerun()
+
+st.write(st.session_state['time_series'])

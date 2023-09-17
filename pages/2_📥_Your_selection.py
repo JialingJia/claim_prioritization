@@ -35,8 +35,7 @@ st.download_button(
     label = f"Download task data",
     data = json_string,
     file_name = f'interface_A.json',
-    mime='application/json',
-    disabled=st.session_state.claim_selected
+    mime='application/json'
 )
 
 # st.write(st.session_state['time_series'])
