@@ -108,7 +108,7 @@ if 'user_defined_facet_number' not in st.session_state:
     st.session_state['time_series'] = [{'start': datetime.datetime.now().timestamp()}]
     st.session_state.selected_claims = []
     st.session_state.value_watcher = [0,0,0,0]
-    st.session_state.query_similarity = []
+    st.session_state.query_similarity = 0
     st.session_state.similarity_weight_boolean = True
 
 st.session_state.verifiable = True
@@ -579,5 +579,3 @@ with st.sidebar:
             del st.session_state['user_defined_facet_number']
             del st.session_state['GPT_filtered_data']
             st.experimental_rerun()
-
-# st.write(st.session_state['time_series'])
