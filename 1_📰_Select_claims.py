@@ -419,7 +419,7 @@ pagination = st.container()
 bottom_menu = st.columns((2.8,0.6,1,0.1,0.6,1))
 
 with bottom_menu[5]:
-    batch_size = st.selectbox("Page Size", options=[30, 50, 100], label_visibility="collapsed", disabled=True)
+    batch_size = st.selectbox("Page Size", options=[20, 50, 100], label_visibility="collapsed")
 
 with bottom_menu[4]:
     st.markdown(f'<p style="margin-top: 8px; margin-left: 10px">Page size:</p>', unsafe_allow_html=True)
@@ -429,7 +429,7 @@ with bottom_menu[2]:
         int(len(df_filter_data) / batch_size) if int(len(df_filter_data) / batch_size) > 0 else 1
     )
     current_page = st.number_input(
-        "Page", min_value=1, max_value=total_pages, step=1, label_visibility="collapsed", disabled=True
+        "Page", min_value=1, max_value=total_pages, step=1, label_visibility="collapsed"
     )
 
 with bottom_menu[1]:
