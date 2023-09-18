@@ -128,7 +128,7 @@ prompts_1 = st.text_area(f'**Descriptions**: how would you describe the new crit
                                      key='free_form_customized', 
                                      placeholder='e.g., if the new facet aims to detect propaganda claims, describe how a propaganda clam is written')
 
-query = st.text_input(f"**Representative examples**: which claims that match the new criterion?", placeholder="search claims using keywords")
+query = st.text_input(f"**Representative examples (optional)**: which claims match the new criterion?", placeholder="search claims using keywords")
 query_search = st.radio("xx", ('Boolean Search', 'Similarity Search'), horizontal=True, label_visibility='collapsed', key = 'select_search')
 if query_search == 'Similarity Search' and query:
     df = similarity_search(query, df)

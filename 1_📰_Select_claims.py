@@ -419,7 +419,7 @@ pagination = st.container()
 bottom_menu = st.columns((2.8,0.6,1,0.1,0.6,1))
 
 with bottom_menu[5]:
-    batch_size = st.selectbox("Page Size", options=[20, 50, 100], label_visibility="collapsed")
+    batch_size = st.selectbox("Page Size", options=[20, 50, 100], label_visibility="collapsed", disabled=True)
 
 with bottom_menu[4]:
     st.markdown(f'<p style="margin-top: 8px; margin-left: 10px">Page size:</p>', unsafe_allow_html=True)
@@ -429,7 +429,7 @@ with bottom_menu[2]:
         int(len(df_filter_data) / batch_size) if int(len(df_filter_data) / batch_size) > 0 else 1
     )
     current_page = st.number_input(
-        "Page", min_value=1, max_value=total_pages, step=1, label_visibility="collapsed"
+        "Page", min_value=1, max_value=total_pages, step=1, label_visibility="collapsed", disabled=True
     )
 
 with bottom_menu[1]:
@@ -474,13 +474,13 @@ tooltip_renderer = JsCode("""
         }
         """)
 
-with st.form('my_form'):
+with st.form('my_form'):       
     edited_df = GridOptionsBuilder.from_dataframe(df_render)
     # edited_df.configure_default_column(tooltipField="tweet_text")
     edited_df.configure_column('tweet_id', hide=True)
     edited_df.configure_column('tweet_text', tooltipComponent=tooltip_renderer)
     edited_df.configure_column('tweet_text', wrapText=True, autoHeight=True)
-    edited_df.configure_column('tweet_text', header_name='Select claims', **{'width':1000})
+    edited_df.configure_column('tweet_text', header_name='Select tweets', **{'width':1000})
     edited_df.configure_selection(selection_mode="multiple", use_checkbox=True)
     # edited_df.configure_grid_options(tooltipShowDelay=1000, tooltipHideDelay=100000)
     gridOptions = edited_df.build()
@@ -500,8 +500,8 @@ with st.form('my_form'):
                                               },
                                 allow_unsafe_jscode= True
                                 )
-        # selected_claims = grid_table['data']
-    submitted = st.form_submit_button('confirm')
+    # grid_table['selected_rows']
+    submitted = st.form_submit_button(f"Save selection")
     if submitted:
         st.session_state['time_series'].append({'selection': datetime.datetime.now().timestamp()})
         selected_claims = grid_table['selected_rows']
