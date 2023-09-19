@@ -96,11 +96,25 @@ if 'select_search' not in st.session_state:
     st.session_state.after_example = []
 
 if 'user_defined_facet_number' not in st.session_state:
+    st.session_state['logger'] = []
     st.session_state['user_defined_facet'] = []
     st.session_state['user_defined_prompts'] = []
     st.session_state['user_defined_facet_number'] = 0
     st.session_state['GPT_filtered_data'] = pd.DataFrame([])
-    st.session_state.value_watcher = []
+    st.session_state['search_type'] = ['none']
+    st.session_state['search_query'] = ['none']
+    st.session_state['number_search'] = 0
+    st.session_state['number_slider_change'] = 0
+    st.session_state['number_new_slider_change'] = 0
+    st.session_state['number_similiarity_slider_change'] = 0
+    st.session_state['start_time'] = datetime.datetime.now().timestamp()
+    st.session_state['end_time'] = 0
+    st.session_state['claim_candidate'] = []
+    st.session_state['time_series'] = [{'start': datetime.datetime.now().timestamp()}]
+    st.session_state.selected_claims = []
+    st.session_state.value_watcher = [0,0,0,0]
+    st.session_state.query_similarity = 0
+    st.session_state.similarity_weight_boolean = True
     
 # load data
 TEST_URL = './final_test_data.csv'
@@ -117,9 +131,10 @@ st.subheader('Create and add new criterion')
 
 st.info(f'You are going to use GPT-3 to create new criteria to filter claims. Please provide **:red[detailed descriptions of the new criteria]** to GPT-3 so that it helps to preprocess claims that are more likely to match the new criteria.')
 
-st.session_state['time_series'].append({'GPT_start': datetime.datetime.now().timestamp()})
+def start_GPT():
+    st.session_state['time_series'].append({'GPT_create_prompt': datetime.datetime.now().timestamp()})
 
-facet_name = st.text_input(f'**Criterion name**: what is your new criterion?', placeholder="propaganda")
+facet_name = st.text_input(f'**Criterion name**: what is your new criterion?', placeholder="propaganda", on_change=start_GPT)
 
 # if facet_name:
 #     st.session_state['time_series'].append({'GPT_name': datetime.datetime.now().timestamp()})
@@ -128,8 +143,8 @@ prompts_1 = st.text_area(f'**Descriptions**: how would you describe the new crit
                                      key='free_form_customized', 
                                      placeholder='e.g., if the new facet aims to detect propaganda claims, describe how a propaganda clam is written')
 
-query = st.text_input(f"**Representative examples (optional)**: which claims match the new criterion?", placeholder="search claims using keywords")
-query_search = st.radio("xx", ('Boolean Search', 'Similarity Search'), horizontal=True, label_visibility='collapsed', key = 'select_search')
+query = st.text_input(f"**Examples (optional)**: which claims match the new criterion?", placeholder="search claims using keywords")
+query_search = st.radio("xx", ('Similarity Search', 'Boolean Search'), horizontal=True, label_visibility='collapsed', key = 'select_search')
 if query_search == 'Similarity Search' and query:
     df = similarity_search(query, df)
 if query_search == 'Boolean Search' and query:

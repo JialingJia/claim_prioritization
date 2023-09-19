@@ -97,10 +97,14 @@ if 'user_defined_facet_number' not in st.session_state:
     st.session_state['user_defined_prompts'] = []
     st.session_state['user_defined_facet_number'] = 0
     st.session_state['GPT_filtered_data'] = pd.DataFrame([])
+    # old log variables
     st.session_state['search_type'] = ['none']
-    st.session_state['search_query'] = ['none']
+    st.session_state['search_query'] = [{'type':'none', 'query':'none'}]
+    # new log variables
+    # st.session_state['search_content'] = [{'type': 'Similarity Search' ,'query': query}]
     st.session_state['number_search'] = 0
     st.session_state['number_slider_change'] = 0
+    st.session_state['number_new_slider_change'] = 0
     st.session_state['number_similiarity_slider_change'] = 0
     st.session_state['start_time'] = datetime.datetime.now().timestamp()
     st.session_state['end_time'] = 0
@@ -110,6 +114,25 @@ if 'user_defined_facet_number' not in st.session_state:
     st.session_state.value_watcher = [0,0,0,0]
     st.session_state.query_similarity = 0
     st.session_state.similarity_weight_boolean = True
+
+# detect feature changes
+def increment_predefined_counter():
+    st.session_state['number_slider_change'] += 1
+    st.session_state['time_series'].append({'slider': datetime.datetime.now().timestamp()})
+
+def increment_similarity_counter():
+    st.session_state['number_similiarity_slider_change'] += 1
+    st.session_state['time_series'].append({'similarity_slider': datetime.datetime.now().timestamp()})
+
+def increment_customized_counter():
+    st.session_state['number_new_slider_change'] += 1
+    st.session_state['time_series'].append({'customized_slider': datetime.datetime.now().timestamp()})
+
+def increment_search_counter():
+    st.session_state['number_search'] += 1 
+    # st.session_state['search_content'].append({'type': query_search ,'query': query})
+    st.session_state['time_series'].append({'search': datetime.datetime.now().timestamp()})
+
 
 st.session_state.verifiable = True
 st.session_state.false_info = True
@@ -198,8 +221,8 @@ df_filter_data = init_data
 # layout
 
 ## search
-query_search = st.radio("xx", ('Boolean Search', 'Similarity Search'), horizontal=True, label_visibility='collapsed')
-query = st.text_input("search:", label_visibility="collapsed", placeholder="search claims using keywords")
+query_search = st.radio("xx", ('Similarity Search', 'Keyword Search'), horizontal=True, label_visibility='collapsed', on_change=increment_search_counter)
+query = st.text_input("search:", label_visibility="collapsed", placeholder="search claims using keywords", on_change=increment_search_counter)
 
 # sidebar
 
@@ -214,14 +237,14 @@ with st.sidebar:
         if verifiable:
             verifiable_select = st.toggle('', key='verifiable_select', label_visibility='hidden')
     if verifiable:
-        verifiable_weight_slider = st.slider('verifiable', key='verifiable_weight', min_value=0.0, value=0.5, max_value=1.0, format="%f", label_visibility='collapsed')
+        verifiable_weight_slider = st.slider('verifiable', key='verifiable_weight', min_value=0.0, value=0.5, max_value=1.0, format="%f", label_visibility='collapsed', on_change=increment_predefined_counter)
         if verifiable_select:
             st.session_state.verifiable = False
             draw_graph(df_filter_data, 'verifiable', 'verifiable_numeric')
             if verifiable_weight_slider == 0.00:
                 st.session_state.verifiable = True
             verifiable_slider = st.slider('Select a range of values',0.00, 1.00, (0.00, 1.00), format="%f",
-                                        key='verifiable_slider', disabled=st.session_state.verifiable, label_visibility='collapsed')
+                                        key='verifiable_slider', disabled=st.session_state.verifiable, label_visibility='collapsed', on_change=increment_predefined_counter)
     else:
         verifiable_weight_slider = 0
         
@@ -234,14 +257,14 @@ with st.sidebar:
         if false_info:
             false_info_select = st.toggle('', key='false_info_select', label_visibility='hidden')
     if false_info:
-        false_info_weight_slider = st.slider('false_info', key='false_info_weight', min_value=0.0, value=0.5, max_value=1.0, format="%f", label_visibility='collapsed')
+        false_info_weight_slider = st.slider('false_info', key='false_info_weight', min_value=0.0, value=0.5, max_value=1.0, format="%f", label_visibility='collapsed', on_change=increment_predefined_counter)
         if false_info_select:
             st.session_state.false_info = False
             draw_graph(df_filter_data, 'false_info', 'false_info_numeric')
             if false_info_weight_slider == 0.00:
                 st.session_state.false_info = True
             false_info_slider = st.slider('Select a range of values',0.0, 1.0, (0.0, 1.0), format="%f",
-                                        key='false_info_slider', disabled=st.session_state.false_info, label_visibility='collapsed')
+                                        key='false_info_slider', disabled=st.session_state.false_info, label_visibility='collapsed', on_change=increment_predefined_counter)
     else:
         false_info_weight_slider = 0
     
@@ -254,14 +277,14 @@ with st.sidebar:
         if general_harm:
             general_harm_select = st.toggle('', key='general_harm_select', label_visibility='hidden')
     if general_harm:
-        general_harm_weight_slider = st.slider('general_harm', key='general_harm_weight', min_value=0.0, value=0.5, max_value=1.0, format="%f", label_visibility='collapsed')
+        general_harm_weight_slider = st.slider('general_harm', key='general_harm_weight', min_value=0.0, value=0.5, max_value=1.0, format="%f", label_visibility='collapsed', on_change=increment_predefined_counter)
         if general_harm_select:
             st.session_state.general_harm = False
             if general_harm_weight_slider == 0.00:
                 st.session_state.general_harm = True
             draw_graph(df_filter_data, 'general_harm', 'general_harm_numeric')
             general_harm_slider = st.slider('Select a range of values',0.0, 1.0, (0.0, 1.0), format="%f",
-                                        key='general_harm_slider', disabled=st.session_state.general_harm, label_visibility='collapsed')
+                                        key='general_harm_slider', disabled=st.session_state.general_harm, label_visibility='collapsed', on_change=increment_predefined_counter)
     else:
         general_harm_weight_slider = 0
         
@@ -274,14 +297,14 @@ with st.sidebar:
         if public_interest:
             interest_to_public_select = st.toggle('', key='interest_to_public_select', label_visibility='hidden')
     if public_interest:
-        interest_to_public_weight_slider = st.slider('interest_to_public', key='interest_to_public_weight', min_value=0.0, value=0.5, max_value=1.0, format="%f", label_visibility='collapsed')
+        interest_to_public_weight_slider = st.slider('interest_to_public', key='interest_to_public_weight', min_value=0.0, value=0.5, max_value=1.0, format="%f", label_visibility='collapsed', on_change=increment_predefined_counter)
         if interest_to_public_select:
             st.session_state.interest_to_public = False
             if interest_to_public_weight_slider == 0.00:
                 st.session_state.interest_to_public = True
             draw_graph(df_filter_data, 'interest_to_public', 'interest_to_public_numeric')
             interest_to_public_slider = st.slider('Select a range of values',0.0, 1.0, (0.0, 1.0), format="%f",
-                                        key='interest_to_public_slider', disabled=st.session_state.interest_to_public, label_visibility='collapsed')
+                                        key='interest_to_public_slider', disabled=st.session_state.interest_to_public, label_visibility='collapsed', on_change=increment_predefined_counter)
     else:
         interest_to_public_weight_slider = 0 
         
@@ -308,17 +331,18 @@ with st.sidebar:
     if query_search == 'Similarity Search' and query:
         st.markdown("""<hr style="margin:1em 0px" /> """, unsafe_allow_html=True)
         st.markdown('## Query similarity')
-        similarity_weight_slider = st.slider('Query similarity weight', key='query_similarity_weight', min_value=0.0, value=0.5, max_value=1.0, format="%f", label_visibility='hidden')
+        similarity_weight_slider = st.slider('Query similarity weight', key='query_similarity_weight', min_value=0.0, value=0.5, max_value=1.0, format="%f", label_visibility='hidden', on_change=increment_similarity_counter)
         df_filter_data = similarity_search(query, df_filter_data)
     else:
         similarity_weight_slider = 0
     
     weight_slider_list = [verifiable_weight_slider, false_info_weight_slider, general_harm_weight_slider, interest_to_public_weight_slider]
+    criteria_list = ['verifiable', 'false_info', 'general_harm', 'interest_to_public']
 
-    if st.session_state.value_watcher != weight_slider_list:
-        # st.write(st.session_state.value_watcher, weight_slider_list)
-        st.session_state['number_slider_change'] = st.session_state['number_slider_change'] + 1
-        st.session_state['time_series'].append({'slider': datetime.datetime.now().timestamp()})
+    # if st.session_state.value_watcher != weight_slider_list:
+    #     # st.write(st.session_state.value_watcher, weight_slider_list)
+    #     # st.session_state['number_slider_change'] = st.session_state['number_slider_change'] + 1
+    #     st.session_state['time_series'].append({'slider': datetime.datetime.now().timestamp()})
 
     st.markdown("""<hr style="margin:1em 0px" /> """, unsafe_allow_html=True)
     st.markdown('## Customized')
@@ -337,16 +361,17 @@ with st.sidebar:
                     new_facet_select = st.toggle('', key=new_facet + '_select', label_visibility='hidden')
             # st.write(st.session_state[new_facet + '_check'])
             if st.session_state[new_facet + '_check']:
-                new_facet_weight_slider = st.slider('xx', key=new_facet + '_weight_slider', min_value=0.0, value=0.0, max_value=1.0, format="%f", label_visibility='collapsed')
+                new_facet_weight_slider = st.slider('xx', key=new_facet + '_weight_slider', min_value=0.0, value=0.0, max_value=1.0, format="%f", label_visibility='collapsed', on_change=increment_customized_counter)
                 # st.write(new_facet_weight_slider)
                 weight_slider_list.append(st.session_state[new_facet + '_weight_slider'])
+                criteria_list.append(new_facet)
                 if new_facet_select:
                     st.session_state[new_facet] = False
                     if new_facet_weight_slider == 0.00:
                         st.session_state[new_facet] = True
                     draw_graph(df_filter_data, new_facet, new_facet + "_prob")
                     new_facet_slider = st.slider('Select a range of values',0.0, 1.0, (0.0, 1.0), format="%f",
-                                            key=new_facet_slider, disabled=st.session_state[new_facet], label_visibility='collapsed')
+                                            key=new_facet_slider, disabled=st.session_state[new_facet], label_visibility='collapsed', on_change=increment_customized_counter)
             else:
                 # new_facet_weight_slider = new_facet + '_weight_slider'
                 st.session_state[new_facet + '_weight_slider'] = 0
@@ -406,7 +431,7 @@ if st.session_state['user_defined_facet']:
 #     df_filter_data = similarity_search(query, df_filter_data)
     # st.session_state.similarity_weight_boolean = False
     # st.write(st.session_state.similarity_weight_boolean)
-if query_search == 'Boolean Search' and query:
+if query_search == 'Keyword Search' and query:
     df_filter_data = boolean_search(query, df_filter_data)
 # st.write(weight_slider_list, st.session_state.value_watcher)
 for ele1, ele2 in zip(weight_slider_list, st.session_state.value_watcher):
@@ -488,7 +513,7 @@ with st.form('my_form'):
                                 reload_data = False,
                                 gridOptions = gridOptions,
                                 fit_columns_on_grid_load = True,
-                                height = 800,
+                                height = 600,
                                 width = '100%',
                                 custom_css = {
                                     ".ag-cell-value": {'font-size': '16px', 'line-height': '22px','padding': '10px'}, 
@@ -512,10 +537,10 @@ with st.form('my_form'):
         selected_claims = []
 
 # logger
-criteria_list = ['verifiable', 'false_info', 'general_harm', 'interest_to_public']
-if st.session_state['user_defined_facet']:
-    for item in st.session_state['user_defined_facet']:
-        criteria_list.append(item['facet_name'])
+
+# if st.session_state['user_defined_facet']:
+#     for item in st.session_state['user_defined_facet']:
+#         criteria_list.append(item['facet_name'])
 propability_range = []
 for item in criteria_list:
     try:
@@ -523,14 +548,14 @@ for item in criteria_list:
     except:
         propability_range.append({item:[0,0]})
 
-if query and [query_search, query] != st.session_state['search_query'][::-1][0]:
-    st.session_state['search_query'].append([query_search, query])
-    st.session_state['number_search']  = st.session_state['number_search'] + 1
-    st.session_state['time_series'].append({'search': datetime.datetime.now().timestamp()})
+if query and {'type':query_search, 'query':query} != st.session_state['search_query'][-1]:
+    st.session_state['search_query'].append({'type':query_search, 'query':query})
+#     # st.session_state['number_search']  = st.session_state['number_search'] + 1
+#     st.session_state['time_series'].append({'search': datetime.datetime.now().timestamp()})
 
-if query and st.session_state.query_similarity != similarity_weight_slider:
-    st.session_state['number_similiarity_slider_change'] = st.session_state['number_similiarity_slider_change'] + 1
-    st.session_state['time_series'].append({'similarity_slider': datetime.datetime.now().timestamp()})
+# if query and st.session_state.query_similarity != similarity_weight_slider:
+    # st.session_state['number_similiarity_slider_change'] = st.session_state['number_similiarity_slider_change'] + 1
+#     st.session_state['time_series'].append({'similarity_slider': datetime.datetime.now().timestamp()})
 
 logger = [
     {'user_id': st.experimental_user.email}, 
@@ -538,7 +563,7 @@ logger = [
     {'user_query': st.session_state['search_query']},
     {'number_query': st.session_state['number_search']}, 
     {'number_slider_change': st.session_state['number_slider_change']}, 
-    {'number_similiarity_slider_change': st.session_state['number_similiarity_slider_change']}, 
+    {'number_similiarity_slider_change': st.session_state['number_similiarity_slider_change']},
         {'page': {
             'current_page': current_page, 
             'batch_size': batch_size, 
@@ -551,7 +576,8 @@ logger = [
     {'criteria_list': criteria_list}, 
     {'criteria_weight': weight_slider_list}, 
     {'criteria_probability_range': propability_range}, 
-    {'user_prompts': st.session_state['user_defined_prompts']}
+    {'user_prompts': st.session_state['user_defined_prompts']},
+    {'number_new_slider_change': st.session_state['number_new_slider_change']}
         ]
 
 ## update start time
@@ -564,9 +590,11 @@ if selected_claims:
     st.session_state['start_time'] = st.session_state['end_time']
     st.session_state['logger'].append(logger)
     ## clear previous log
-    st.session_state['search_query'] = ['none']
+    st.session_state['search_query'] = [{'type':'none', 'query':'none'}]
     st.session_state['number_search'] = 0
     st.session_state['number_slider_change'] = 0
+    st.session_state['number_new_slider_change'] = 0
+    st.session_state['number_similiarity_slider_change'] = 0
 else:
     st.session_state.claim_selected = True
 
@@ -579,3 +607,12 @@ with st.sidebar:
             del st.session_state['user_defined_facet_number']
             del st.session_state['GPT_filtered_data']
             st.experimental_rerun()
+
+
+# st.write("number_slider_change", st.session_state['number_slider_change'])
+# st.write("number_similiarity_slider_change", st.session_state['number_similiarity_slider_change'])
+# st.write("number_new_slider_change", st.session_state['number_new_slider_change'])
+# st.write("number_search", st.session_state['number_search'])
+# st.write("search_query", st.session_state['search_query'])
+
+# st.write(logger)
