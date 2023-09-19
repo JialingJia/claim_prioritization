@@ -232,7 +232,7 @@ with st.sidebar:
 
     col1, col2 = st.columns([6, 1])
     with col1:
-        verifiable = st.checkbox('Verifiable', help="The tweet contains a verifiable factual claim.")
+        verifiable = st.checkbox('Verifiable', help="The tweet contains a verifiable factual claim.", on_change=increment_predefined_counter)
     with col2:
         if verifiable:
             verifiable_select = st.toggle('', key='verifiable_select', label_visibility='hidden')
@@ -252,7 +252,7 @@ with st.sidebar:
     
     col1, col2 = st.columns([6, 1])
     with col1:
-        false_info = st.checkbox('Likely to be false', help="The tweet appears to contain false information")
+        false_info = st.checkbox('Likely to be false', help="The tweet appears to contain false information", on_change=increment_predefined_counter)
     with col2:
         if false_info:
             false_info_select = st.toggle('', key='false_info_select', label_visibility='hidden')
@@ -272,7 +272,7 @@ with st.sidebar:
     
     col1, col2 = st.columns([6, 1])
     with col1:
-        general_harm = st.checkbox('Likely to cause harm', help="The tweet appears to be harmful to society, people, company, or products.")
+        general_harm = st.checkbox('Likely to cause harm', help="The tweet appears to be harmful to society, people, company, or products.", on_change=increment_predefined_counter)
     with col2:
         if general_harm:
             general_harm_select = st.toggle('', key='general_harm_select', label_visibility='hidden')
@@ -292,7 +292,7 @@ with st.sidebar:
 
     col1, col2 = st.columns([6, 1])
     with col1:
-        public_interest = st.checkbox('Interest to the public', help="The tweet has an effect on or will be of interest to the general public.")
+        public_interest = st.checkbox('Interest to the public', help="The tweet has an effect on or will be of interest to the general public.", on_change=increment_predefined_counter)
     with col2:
         if public_interest:
             interest_to_public_select = st.toggle('', key='interest_to_public_select', label_visibility='hidden')
@@ -355,7 +355,7 @@ with st.sidebar:
             new_facet_check = new_facet + '_check'
             col1, col2 = st.columns([6, 1])
             with col1:
-                new_facet_check = st.checkbox("""{new_facet}""".format(new_facet=item['facet_name'].capitalize()), key=new_facet + '_check')
+                new_facet_check = st.checkbox("""{new_facet}""".format(new_facet=item['facet_name'].capitalize()), key=new_facet + '_check', on_change=increment_customized_counter)
             with col2:
                 if new_facet_check:
                     new_facet_select = st.toggle('', key=new_facet + '_select', label_visibility='hidden')
