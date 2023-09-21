@@ -14,6 +14,7 @@ import requests
 import datetime
 import base64
 from PIL import Image
+import time
 # import streamlit_analytics
 
 # page config
@@ -361,7 +362,7 @@ with st.sidebar:
                     new_facet_select = st.toggle('', key=new_facet + '_select', label_visibility='hidden')
             # st.write(st.session_state[new_facet + '_check'])
             if st.session_state[new_facet + '_check']:
-                new_facet_weight_slider = st.slider('xx', key=new_facet + '_weight_slider', min_value=0.0, value=0.0, max_value=1.0, format="%f", label_visibility='collapsed', on_change=increment_customized_counter)
+                new_facet_weight_slider = st.slider('xx', key=new_facet + '_weight_slider', min_value=0.0, value=0.5, max_value=1.0, format="%f", label_visibility='collapsed', on_change=increment_customized_counter)
                 # st.write(new_facet_weight_slider)
                 weight_slider_list.append(st.session_state[new_facet + '_weight_slider'])
                 criteria_list.append(new_facet)
@@ -532,7 +533,11 @@ with st.form('my_form'):
         selected_claims = grid_table['selected_rows']
         st.session_state['end_time'] = datetime.datetime.now().timestamp()
         st.session_state['time_series'].append({'end': datetime.datetime.now().timestamp()})
-        st.toast('Claims have been successfully selected!', icon="✅")
+        st.toast('Claims have been successfully selected!', icon="🎉")
+        # time.sleep(.5)
+        # st.toast('Selected claims are saved in the selection page.')
+        # time.sleep(.5)
+        # st.toast('Continue finding more claims!')
     else:
         selected_claims = []
 

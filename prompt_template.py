@@ -93,7 +93,7 @@ class GPT:
         
     def generate_2(self):
         GPT_response = openai.Completion.create(
-            model= 'text-babbage-001',
+            model= 'babbage-002',
             prompt= self.prompt,
             max_tokens=128,
             temperature=0,

@@ -288,7 +288,9 @@ if final_submission:
         # record end time
         st.session_state['time_series'].append({'GPT_end': datetime.datetime.now().timestamp()})
         # message.empty
-        st.toast('You have successfully added the new facet to the facet browsing, go back and play with it!', icon="✅")
+        st.toast('You have successfully added the new facet to the facet browsing!', icon="🎉")
+        time.sleep(1)
+        st.toast('Go back to the select page and play with it!')
         # else:
         #     st.warning('You have already created this facet. Please give it a different name for the new facet.', icon="👻")
     else:
