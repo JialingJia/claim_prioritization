@@ -30,7 +30,7 @@ class Template:
 
     def prompt(self):
         intro = """\n###\nInput:""" + self.input
-        user_defined_instruct = """\n###\nIdentify whether the input text belongs to """ + f"""{self.facet}""" + """ and output yes or no."""
+        user_defined_instruct = """\n###\nIdentify whether the input claim is """ + f"""{self.facet}""" + """ and output yes or no."""
         output = """\n###\nOutput:"""
         if self.description and self.example:
             context = self.des_context() + self.ex_context()
@@ -49,7 +49,7 @@ class GPT:
 
     def generate_1(self):
         GPT_response = openai.Completion.create(
-            model= 'text-curie-001',
+            model= 'gpt-3.5-turbo-instruct',
             prompt= self.prompt,
             max_tokens=128,
             temperature=0,
@@ -93,7 +93,7 @@ class GPT:
         
     def generate_2(self):
         GPT_response = openai.Completion.create(
-            model= 'babbage-002',
+            model= 'gpt-3.5-turbo-instruct',
             prompt= self.prompt,
             max_tokens=128,
             temperature=0,

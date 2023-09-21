@@ -488,6 +488,7 @@ tooltip_renderer = JsCode("""
                 const eGui = (this.eGui = document.createElement('div'));
                 const color = 'white';
                 const data = params.data.tweet_id;
+                const text = params.data.tweet_text;
                 const url = "https://raw.githubusercontent.com/JialingJia/houjiang-website/master/research_data/checkworthy_tweet/img/" + params.data.tweet_id + ".png" ;
                 console.log(url);
                           
@@ -504,23 +505,22 @@ with st.form('my_form'):
     edited_df = GridOptionsBuilder.from_dataframe(df_render)
     # edited_df.configure_default_column(tooltipField="tweet_text")
     edited_df.configure_column('tweet_id', hide=True)
-    edited_df.configure_column('tweet_text', tooltipComponent=tooltip_renderer)
+    # edited_df.configure_column('tweet_text', cellRenderer=tooltip_renderer, autoHeight=True)
     edited_df.configure_column('tweet_text', wrapText=True, autoHeight=True)
     edited_df.configure_column('tweet_text', header_name='Select tweets', **{'width':1000})
     edited_df.configure_selection(selection_mode="multiple", use_checkbox=True)
-    # edited_df.configure_grid_options(tooltipShowDelay=1000, tooltipHideDelay=100000)
+    # edited_df.configure_grid_options(autoHeight=true)
     gridOptions = edited_df.build()
     grid_table = AgGrid(df_render, 
                                 reload_data = False,
                                 gridOptions = gridOptions,
                                 fit_columns_on_grid_load = True,
-                                height = 600,
+                                height = 1200,
                                 width = '100%',
                                 custom_css = {
                                     ".ag-cell-value": {'font-size': '16px', 'line-height': '22px','padding': '10px'}, 
                                     "#gridToolBar": {'display':'none'},
-                                    ".custom-tooltip": {'width': '400px', 'height': 'auto', 'overflow': 'hidden', 'box-shadow': '0 0 0.75rem grey',
-                                                    'position': 'fixed', 'pointer-events':'none'},
+                                    ".custom-tooltip": {'width': '400px', 'height': 'auto', 'overflow': 'hidden', 'box-shadow': '0 0 0rem grey'},
                                     ".custom-tooltip p": {'margin': '5px', 'white-space': 'nowrap'},
                                     ".custom-tooltip p:first-of-type": {'font-weight': 'bold'}
                                               },
