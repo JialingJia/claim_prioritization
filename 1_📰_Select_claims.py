@@ -229,6 +229,15 @@ query = st.text_input("search:", label_visibility="collapsed", placeholder="sear
 
 with st.sidebar:
 
+    if query_search == 'Similarity Search' and query:
+        # st.markdown("""<hr style="margin:1em 0px" /> """, unsafe_allow_html=True)
+        st.markdown('## Query similarity')
+        similarity_weight_slider = st.slider('Query similarity weight', key='query_similarity_weight', min_value=0.0, value=0.5, max_value=1.0, format="%f", label_visibility='hidden', on_change=increment_similarity_counter)
+        df_filter_data = similarity_search(query, df_filter_data)
+        st.markdown("""<hr style="margin:1em 0px" /> """, unsafe_allow_html=True)
+    else:
+        similarity_weight_slider = 0
+
     st.markdown('## Preset')
 
     col1, col2 = st.columns([6, 1])
@@ -328,14 +337,6 @@ with st.sidebar:
     #                                     key='attention_to_fact_check_slider', disabled=st.session_state.attention_to_fact_check, label_visibility='collapsed')
     # else:
     #     attention_to_fact_check_weight_slider = 0
-
-    if query_search == 'Similarity Search' and query:
-        st.markdown("""<hr style="margin:1em 0px" /> """, unsafe_allow_html=True)
-        st.markdown('## Query similarity')
-        similarity_weight_slider = st.slider('Query similarity weight', key='query_similarity_weight', min_value=0.0, value=0.5, max_value=1.0, format="%f", label_visibility='hidden', on_change=increment_similarity_counter)
-        df_filter_data = similarity_search(query, df_filter_data)
-    else:
-        similarity_weight_slider = 0
     
     weight_slider_list = [verifiable_weight_slider, false_info_weight_slider, general_harm_weight_slider, interest_to_public_weight_slider]
     criteria_list = ['verifiable', 'false_info', 'general_harm', 'interest_to_public']
@@ -515,7 +516,7 @@ with st.form('my_form'):
                                 reload_data = False,
                                 gridOptions = gridOptions,
                                 fit_columns_on_grid_load = True,
-                                height = 1200,
+                                height = 1300,
                                 width = '100%',
                                 custom_css = {
                                     ".ag-cell-value": {'font-size': '16px', 'line-height': '22px','padding': '10px'}, 
