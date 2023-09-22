@@ -143,6 +143,8 @@ prompts_1 = st.text_area(f'**Descriptions**: how would you describe the new crit
                                      key='free_form_customized', 
                                      placeholder='e.g., if the new facet aims to detect propaganda claims, describe how a propaganda clam is written')
 
+st.caption(f'This is how your prompt looks like: Identify whether the input claim belongs to {facet_name}, {prompts_1}')
+
 query = st.text_input(f"**Examples (optional)**: which claims match the new criterion?", placeholder="search claims using keywords")
 query_search = st.radio("xx", ('Similarity Search', 'Boolean Search'), horizontal=True, label_visibility='collapsed', key = 'select_search')
 if query_search == 'Similarity Search' and query:
