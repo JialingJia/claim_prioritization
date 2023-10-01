@@ -17,9 +17,9 @@ import datetime
 st.set_page_config(layout="wide", initial_sidebar_state="expanded")
 st.markdown("""
     <style>
-    # button.css-nqowgj.e1ewe7hr3{
-    #     display: none;
-    # }
+    button.css-nqowgj.e1ewe7hr3{
+        display: none;
+    }
     ::-webkit-scrollbar {
         width: 10px;
     }
@@ -115,6 +115,8 @@ if 'user_defined_facet_number' not in st.session_state:
     st.session_state.value_watcher = [0,0,0,0]
     st.session_state.query_similarity = 0
     st.session_state.similarity_weight_boolean = True
+    st.session_state.customized_facet = ''
+    st.session_state.customized_details = ''
     
 # load data
 TEST_URL = './final_test_data.csv'
@@ -132,115 +134,156 @@ st.subheader('Create and add new criterion')
 st.info(f'You are going to use GPT-3 to create new criteria to filter claims. Please provide **:red[detailed descriptions of the new criteria]** to GPT-3 so that it helps to preprocess claims that are more likely to match the new criteria.')
 
 def start_GPT():
-    st.session_state['time_series'].append({'GPT_create_prompt': datetime.datetime.now().timestamp()})
-
-facet_name = st.text_input(f'**Criterion name**: what is your new criterion?', placeholder="propaganda", on_change=start_GPT)
-
-# if facet_name:
-#     st.session_state['time_series'].append({'GPT_name': datetime.datetime.now().timestamp()})
-
-prompts_1 = st.text_area(f'**Descriptions**: how would you describe the new criterion?', 
-                                     key='free_form_customized', 
-                                     placeholder='e.g., if the new facet aims to detect propaganda claims, describe how a propaganda clam is written')
-
-st.caption(f'This is how your prompt looks like: Identify whether the input claim belongs to {facet_name}, {prompts_1}')
-
-query = st.text_input(f"**Examples (optional)**: which claims match the new criterion?", placeholder="search claims using keywords")
-query_search = st.radio("xx", ('Similarity Search', 'Boolean Search'), horizontal=True, label_visibility='collapsed', key = 'select_search')
-if query_search == 'Similarity Search' and query:
-    df = similarity_search(query, df)
-if query_search == 'Boolean Search' and query:
-    df = boolean_search(query, df)
-# df = search(query, df)
-
-st.session_state.before_example = list(df['tweet_text'])
-
-delect_js = JsCode("""
-    function(e) {
-        let api = e.api;        
-        let sel = api.getSelectedRows();
-        setTimeout(function(){
-            api.applyTransaction({remove: sel})
-        }, 500);
-    };
-    """)
-
-# AgGrid version
-custom_css = {
-                ".ag-cell-value": {'line-height': '20px','padding': '10px'}, 
-                "#gridToolBar": {'display':'none'}
-                }
-
+    st.session_state['time_series'].append({'GPT_edit_prompt': datetime.datetime.now().timestamp()})
 
 col1, col2 = st.columns(2)
-df_before = pd.DataFrame(st.session_state.before_example, columns=['tweet_text'])
+
 with col1:
-    edited_df = GridOptionsBuilder.from_dataframe(df_before)
-    edited_df.configure_column('tweet_text', wrapText=True, autoHeight=True)
-    edited_df.configure_column('tweet_text', header_name='tweets (click to add)', **{'width':1000})
-    edited_df.configure_selection(selection_mode="single", use_checkbox=True)
-    # edited_df.configure_grid_options(onRowSelected=delect_js)
-    gridOptions = edited_df.build()
-    grid_table = AgGrid(df_before, 
-                            update_mode=GridUpdateMode.SELECTION_CHANGED,
-                            gridOptions = gridOptions,
-                            fit_columns_on_grid_load=True,
-                            height = 600,
-                            width = '100%',
-                            custom_css = custom_css,
-                            allow_unsafe_jscode = True,
-                                # reload_data = False
-                            )
-    # st.session_state.before_example = list(grid_table.data['tweet_text'])
-    for i in grid_table.selected_rows:
-        if i['tweet_text'] not in st.session_state.middle_example:
-            st.session_state.middle_example.append(i['tweet_text'])
+    prompt_template = st.selectbox(
+        f'**Prompt template:**',
+        ('Customized', 'Propaganda', 'Difficult', 'Urgent')
+    )
 
-df_middle = pd.DataFrame(st.session_state.middle_example, columns=['tweet_text'])
+    if prompt_template == 'Customized':
+        st.session_state.customized_facet = ''
+        st.session_state.customized_details = ''
 
-with col2:
-    df_middle['label'] = 1
-    selected_df = GridOptionsBuilder.from_dataframe(df_middle)
-    selected_df.configure_column('label', editable=True)
-    selected_df.configure_column('tweet_text', wrapText=True, autoHeight=True, editable = True)
-    selected_df.configure_column('tweet_text', header_name='selected tweets (click to remove)', **{'width':1000})
-    selected_df.configure_selection(selection_mode="single", use_checkbox=True)
-    selected_df.configure_grid_options(onRowSelected=delect_js)
-    gridOptions = selected_df.build()
-    selected_table = AgGrid(df_middle, 
-                            gridOptions = gridOptions,
-                            editable = True,
-                            # reload_data = False,
-                            fit_columns_on_grid_load=True,
-                            height = 600,
-                            width = '100%',
-                            custom_css = custom_css,
-                            allow_unsafe_jscode = True,
-                            data_return_mode = DataReturnMode.AS_INPUT,
-                            update_mode = GridUpdateMode.MODEL_CHANGED
-                            )
-    if selected_table.data.empty == False:
-        st.session_state.after_example = list(selected_table.data['tweet_text'])
-    # else:
-    #     st.session_state.middle_example = []
-        # st.experimental_rerun()
+    if prompt_template == 'Propaganda':
+        st.session_state.customized_facet = 'propaganda'
+        st.session_state.customized_details = 'Claims are sensationalized or contain hyperbolic language grabbing public attention, thus easily calling people to action.'
+
+    if prompt_template == 'Difficult':
+        st.session_state.customized_facet = 'difficult'
+        st.session_state.customized_details = 'To fact-check this claim is very difficult because there is no evidence, it requires a long time, or it is too subjective.'
+
+    if prompt_template == 'Urgent':
+        st.session_state.customized_facet = 'urgent and harmful'
+        st.session_state.customized_details = 'Fact-checker should immediately fact-check this claim otherwise it might cause distrastous harm to the public.'
+
+    facet_name = st.text_input(f'**Criterion name**: what is your new criterion?', 
+                                    value=st.session_state.customized_facet, 
+                                    placeholder="propaganda", 
+                                    on_change=start_GPT)
+    prompts_1 = st.text_area(f'**Descriptions**: how would you describe the new criterion?', 
+                                    value=st.session_state.customized_details, 
+                                    placeholder='e.g., if the new facet aims to detect propaganda claims, describe how a propaganda clam is written',
+                                    on_change=start_GPT)
+
+criterion_name = facet_name
+descriptions = prompts_1
+
+with col2: 
+    st.caption('This is how your prompt looks like: ')
+
+    if descriptions or criterion_name:
+        with st.chat_message("user", avatar = "🧑‍💻"):
+            st.write(f"I want to identify claims that are {criterion_name}.")
+        with st.chat_message("user", avatar = "🧑‍💻"):
+            st.write(f"{descriptions}")
+    else:
+        with st.chat_message("user", avatar = "🧑‍💻"):
+            st.write(f"I want to identify claims that are {{criterion_name}}.")
+        with st.chat_message("user", avatar = "🧑‍💻"):
+            st.write(f"{{descriptions}}")
+
+
+# # Examples
+# query = st.text_input(f"**Examples (optional)**: which claims match the new criterion?", placeholder="search claims using keywords")
+# query_search = st.radio("xx", ('Similarity Search', 'Boolean Search'), horizontal=True, label_visibility='collapsed', key = 'select_search')
+# if query_search == 'Similarity Search' and query:
+#     df = similarity_search(query, df)
+# if query_search == 'Boolean Search' and query:
+#     df = boolean_search(query, df)
+# # df = search(query, df)
+
+# st.session_state.before_example = list(df['tweet_text'])
+
+# delect_js = JsCode("""
+#     function(e) {
+#         let api = e.api;        
+#         let sel = api.getSelectedRows();
+#         setTimeout(function(){
+#             api.applyTransaction({remove: sel})
+#         }, 500);
+#     };
+#     """)
+
+# # AgGrid version
+# custom_css = {
+#                 ".ag-cell-value": {'line-height': '20px','padding': '10px'}, 
+#                 "#gridToolBar": {'display':'none'}
+#                 }
+
+
+# col1, col2 = st.columns(2)
+# df_before = pd.DataFrame(st.session_state.before_example, columns=['tweet_text'])
+# with col1:
+#     edited_df = GridOptionsBuilder.from_dataframe(df_before)
+#     edited_df.configure_column('tweet_text', wrapText=True, autoHeight=True)
+#     edited_df.configure_column('tweet_text', header_name='tweets (click to add)', **{'width':1000})
+#     edited_df.configure_selection(selection_mode="single", use_checkbox=True)
+#     # edited_df.configure_grid_options(onRowSelected=delect_js)
+#     gridOptions = edited_df.build()
+#     grid_table = AgGrid(df_before, 
+#                             update_mode=GridUpdateMode.SELECTION_CHANGED,
+#                             gridOptions = gridOptions,
+#                             fit_columns_on_grid_load=True,
+#                             height = 600,
+#                             width = '100%',
+#                             custom_css = custom_css,
+#                             allow_unsafe_jscode = True,
+#                                 # reload_data = False
+#                             )
+#     # st.session_state.before_example = list(grid_table.data['tweet_text'])
+#     for i in grid_table.selected_rows:
+#         if i['tweet_text'] not in st.session_state.middle_example:
+#             st.session_state.middle_example.append(i['tweet_text'])
+
+# df_middle = pd.DataFrame(st.session_state.middle_example, columns=['tweet_text'])
+
+# with col2:
+#     df_middle['label'] = 1
+#     selected_df = GridOptionsBuilder.from_dataframe(df_middle)
+#     selected_df.configure_column('label', editable=True)
+#     selected_df.configure_column('tweet_text', wrapText=True, autoHeight=True, editable = True)
+#     selected_df.configure_column('tweet_text', header_name='selected tweets (click to remove)', **{'width':1000})
+#     selected_df.configure_selection(selection_mode="single", use_checkbox=True)
+#     selected_df.configure_grid_options(onRowSelected=delect_js)
+#     gridOptions = selected_df.build()
+#     selected_table = AgGrid(df_middle, 
+#                             gridOptions = gridOptions,
+#                             editable = True,
+#                             # reload_data = False,
+#                             fit_columns_on_grid_load=True,
+#                             height = 600,
+#                             width = '100%',
+#                             custom_css = custom_css,
+#                             allow_unsafe_jscode = True,
+#                             data_return_mode = DataReturnMode.AS_INPUT,
+#                             update_mode = GridUpdateMode.MODEL_CHANGED
+#                             )
+#     if selected_table.data.empty == False:
+#         st.session_state.after_example = list(selected_table.data['tweet_text'])
+#     # else:
+#     #     st.session_state.middle_example = []
+#         # st.experimental_rerun()
         
-    # for i in selected_table.selected_rows:
-    #     st.session_state.before_example.append(i['tweet_text'])
-    # df_before = pd.DataFrame(st.session_state.before_example, columns=['tweet_text'])
-    st.session_state.middle_example = st.session_state.after_example
+#     # for i in selected_table.selected_rows:
+#     #     st.session_state.before_example.append(i['tweet_text'])
+#     # df_before = pd.DataFrame(st.session_state.before_example, columns=['tweet_text'])
+#     st.session_state.middle_example = st.session_state.after_example
 
-# st.write(selected_table.data)
+# # st.write(selected_table.data)
 
 prompts_2 = []
-for idx, row in selected_table.data.iterrows():
-    prompts_2.append([row['tweet_text'], row['label']])
-# st.write(prompts_2)
-    # st.session_state.after_example = [] 
-    # for i in selected_table.data:
-    #     st.session_state.after_example.append(i['tweet_text'])
-    # for i in selected_table.selected_rows:
-    #     st.session_state.before_example.append(i['tweet_text'])
+# for idx, row in selected_table.data.iterrows():
+#     prompts_2.append([row['tweet_text'], row['label']])
+# # st.write(prompts_2)
+#     # st.session_state.after_example = [] 
+#     # for i in selected_table.data:
+#     #     st.session_state.after_example.append(i['tweet_text'])
+#     # for i in selected_table.selected_rows:
+#     #     st.session_state.before_example.append(i['tweet_text'])
     
 # prompts_2 = st.session_state.temp_example
 final_submission = st.button('Confirm and add new criterion', type='primary')
