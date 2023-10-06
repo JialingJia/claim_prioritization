@@ -16,10 +16,11 @@ import base64
 from PIL import Image
 import time
 import streamlit_antd_components as sac
-# import streamlit_analytics
 
-# page config
+######## page config ########
+
 st.set_page_config(layout="wide")
+## modify interface lookup
 st.markdown("""
     <style>
     # div.mantine-Group-root.mantine-1qj7haw{
@@ -71,7 +72,7 @@ st.markdown("""
     </style>
     """,unsafe_allow_html=True)
 
-# data and model cache
+## data and model cache
 @st.cache_data()
 def load_data(url):
     data = pd.read_csv(url)
@@ -95,7 +96,7 @@ def load_embedding():
     corpus_embedding = embedding_model.encode(list(init_data['tweet_text']))
     return corpus_embedding
 
-# session state
+## session state
 if 'user_defined_facet_number' not in st.session_state:
     st.session_state['logger'] = []
     st.session_state['user_defined_facet'] = []
@@ -106,7 +107,6 @@ if 'user_defined_facet_number' not in st.session_state:
     st.session_state['search_type'] = ['none']
     st.session_state['search_query'] = [{'type':'none', 'query':'none'}]
     # new log variables
-    # st.session_state['search_content'] = [{'type': 'Similarity Search' ,'query': query}]
     st.session_state['number_search'] = 0
     st.session_state['number_slider_change'] = 0
     st.session_state['number_new_slider_change'] = 0
@@ -120,7 +120,7 @@ if 'user_defined_facet_number' not in st.session_state:
     st.session_state.query_similarity = 0
     st.session_state.similarity_weight_boolean = True
 
-# detect feature changes
+## detect feature changes
 def increment_predefined_counter():
     st.session_state['number_slider_change'] += 1
     st.session_state['time_series'].append({'slider': datetime.datetime.now().timestamp()})
@@ -138,22 +138,18 @@ def increment_search_counter():
     # st.session_state['search_content'].append({'type': query_search ,'query': query})
     st.session_state['time_series'].append({'search': datetime.datetime.now().timestamp()})
 
-
+## initiate feature state
 st.session_state.verifiable = True
 st.session_state.false_info = True
 st.session_state.interest_to_public = True
 st.session_state.general_harm = True
-# st.session_state.attention_to_fact_check = True
-# st.session_state.similarity_weight_boolean = True
-# st.session_state.government_interest = True
-# st.session_state['search'] = ''
-
+# initiate customized facet
 if st.session_state['user_defined_facet']:
     for item in st.session_state['user_defined_facet']:
         new_facet = item['facet_name']
         st.session_state[new_facet] = True
 
-# functions
+## functions
 def similarity_search(query, data):
     # st.dataframe(data)
     search_model = load_sentenceBert()
@@ -214,7 +210,7 @@ def split_frame(data, rows):
     data = [data.loc[i : i + rows - 1, :] for i in range(0, len(data), rows)]
     return data
 
-# load data
+## load data
 TEST_URL = './final_test_data.csv'
 original_data = load_data(TEST_URL)
 if st.session_state['GPT_filtered_data'].empty:
@@ -224,16 +220,21 @@ else:
 
 df_filter_data = init_data
 df_filter_data['search'] = ''
-# layout
+df_filter_data['topics'] = ''
+df_filter_data['preview'] = 'tweet'
 
-## search
-query_search = st.radio("xx", ('Similarity Search', 'Keyword Search'), horizontal=True, label_visibility='collapsed', on_change=increment_search_counter)
-query = st.text_input("search:", label_visibility="collapsed", placeholder="search claims using keywords", on_change=increment_search_counter)
+######## interface layout ########
 
-# sidebar
+## search input
+query_search = 'similarity'
+# query_search = st.radio("xx", ('Similarity Search', 'Keyword Search'), horizontal=True, label_visibility='collapsed', on_change=increment_search_counter)
+query = st.text_input("search:", label_visibility="collapsed", placeholder="Search claims", on_change=increment_search_counter)
+
+## sidebar
 with st.sidebar:
 
-    if query_search == 'Similarity Search' and query:
+    # if query_search == 'Similarity Search' and query:
+    if query:
         # st.markdown("""<hr style="margin:1em 0px" /> """, unsafe_allow_html=True)
         st.markdown('## Query similarity')
         similarity_weight_slider = st.slider('Query similarity weight', key='query_similarity_weight', min_value=0.0, value=0.5, max_value=1.0, format="%f", label_visibility='hidden', on_change=increment_similarity_counter)
@@ -247,7 +248,7 @@ with st.sidebar:
 
     col1, col2 = st.columns([6, 1])
     with col1:
-        verifiable = st.checkbox('Verifiable', help="The tweet contains a verifiable factual claim.", value=True, on_change=increment_predefined_counter)
+        verifiable = st.checkbox('Verifiable', help="The system helps you rank tweets that are likely to be verifiable at the top.", value=True, on_change=increment_predefined_counter)
     with col2:
         if verifiable:
             verifiable_select = st.toggle('', key='verifiable_select', label_visibility='hidden')
@@ -267,7 +268,7 @@ with st.sidebar:
     
     col1, col2 = st.columns([6, 1])
     with col1:
-        false_info = st.checkbox('Likely to be false', help="The tweet appears to contain false information", value=True, on_change=increment_predefined_counter)
+        false_info = st.checkbox('Likely to be false', help="The system helps you rank tweets that are likely to contain false information at the top.", value=True, on_change=increment_predefined_counter)
     with col2:
         if false_info:
             false_info_select = st.toggle('', key='false_info_select', label_visibility='hidden')
@@ -287,7 +288,7 @@ with st.sidebar:
     
     col1, col2 = st.columns([6, 1])
     with col1:
-        general_harm = st.checkbox('Likely to cause harm', help="The tweet appears to be harmful to society, people, company, or products.", value=True, on_change=increment_predefined_counter)
+        general_harm = st.checkbox('Likely to cause harm', help="The system helps you rank claims that are likely to cause harm to the society at the top.", value=True, on_change=increment_predefined_counter)
     with col2:
         if general_harm:
             general_harm_select = st.toggle('', key='general_harm_select', label_visibility='hidden')
@@ -307,7 +308,7 @@ with st.sidebar:
 
     col1, col2 = st.columns([6, 1])
     with col1:
-        public_interest = st.checkbox('Interest to the public', help="The tweet has an effect on or will be of interest to the general public.", value=True, on_change=increment_predefined_counter)
+        public_interest = st.checkbox('Interest to the public', help="The system helps you rank claims that the public might be more interested in at the top.", value=True, on_change=increment_predefined_counter)
     with col2:
         if public_interest:
             interest_to_public_select = st.toggle('', key='interest_to_public_select', label_visibility='hidden')
@@ -324,32 +325,9 @@ with st.sidebar:
         interest_to_public_weight_slider = 0 
         
     # st.markdown("""<hr style="margin:1em 0px" /> """, unsafe_allow_html=True)
-
-    # col1, col2 = st.columns([6, 1])
-    # with col1:
-    #     attention = st.checkbox('Attention to fact-checkers', help="A professional fact-checker should verify the claim in the tweet.")
-    # with col2:
-    #     if attention:
-    #         attention_to_fact_check_select = st.toggle('', key='attention_to_fact_check_select', label_visibility='hidden')
-    # if attention:
-    #     attention_to_fact_check_weight_slider = st.slider('attention_to_fact_check', key='attention_to_fact_check_weight', min_value=0.0, value=0.5, max_value=1.0, format="%f", label_visibility='collapsed')
-    #     if attention_to_fact_check_select:
-    #         st.session_state.attention_to_fact_check = False
-    #         if attention_to_fact_check_weight_slider == 0.00:
-    #             st.session_state.attention_to_fact_check = True
-    #         draw_graph(df_filter_data, 'attention_to_fact_check', 'attention_to_fact_check_numeric')
-    #         attention_to_fact_check_slider = st.slider('Select a range of values',0.0, 1.0, (0.0, 1.0), format="%f",
-    #                                     key='attention_to_fact_check_slider', disabled=st.session_state.attention_to_fact_check, label_visibility='collapsed')
-    # else:
-    #     attention_to_fact_check_weight_slider = 0
     
     weight_slider_list = [verifiable_weight_slider, false_info_weight_slider, general_harm_weight_slider, interest_to_public_weight_slider]
     criteria_list = ['verifiable', 'false_info', 'general_harm', 'interest_to_public']
-
-    # if st.session_state.value_watcher != weight_slider_list:
-    #     # st.write(st.session_state.value_watcher, weight_slider_list)
-    #     # st.session_state['number_slider_change'] = st.session_state['number_slider_change'] + 1
-    #     st.session_state['time_series'].append({'slider': datetime.datetime.now().timestamp()})
 
     st.markdown("""<hr style="margin:1em 0px" /> """, unsafe_allow_html=True)
     st.markdown('## Customized')
@@ -389,9 +367,9 @@ with st.sidebar:
 
     reset = st.button('reset customized facet', type="secondary", disabled=st.session_state.reset)
 
-# body
+## search results
 
-## filter data
+# filter data
 df_filter_data = re_rank(df_filter_data)
 if verifiable:
     if verifiable_select:
@@ -413,15 +391,6 @@ if general_harm:
         df_filter_data = filter_data(df_filter_data, 'general_harm')
         df_filter_data = df_filter_data[df_filter_data['general_harm_numeric'].between(st.session_state['general_harm_slider'][0], st.session_state['general_harm_slider'][1])]
 
-# if attention:
-#     if attention_to_fact_check_select:
-#         df_filter_data = filter_data(df_filter_data, 'attention_to_fact_check')
-#         df_filter_data = df_filter_data[df_filter_data['attention_to_fact_check_numeric'].between(st.session_state['attention_to_fact_check_slider'][0], st.session_state['attention_to_fact_check_slider'][1])]
-
-    # if government_interest_select:
-    #     df_filter_data = filter_data(df_filter_data, 'general_harm')
-    #     df_filter_data = df_filter_data[df_filter_data['general_harm_numeric'].between(st.session_state['general_harm_slider'][0], st.session_state['general_harm_slider'][1])]
-
 if st.session_state['user_defined_facet']:
     for item in st.session_state['user_defined_facet']:
         new_facet = item['facet_name']
@@ -432,53 +401,41 @@ if st.session_state['user_defined_facet']:
                 df_filter_data = df_filter_data[df_filter_data[new_facet + '_prob'].between(st.session_state[new_slider][0], st.session_state[new_slider][1])]
 
 ## re-rank data based on user interactions
-# st.dataframe(init_data)
-# st.dataframe(df_filter_data)
-# if query_search == 'Similarity Search' and query:
-#     df_filter_data = similarity_search(query, df_filter_data)
-    # st.session_state.similarity_weight_boolean = False
-    # st.write(st.session_state.similarity_weight_boolean)
-if query_search == 'Keyword Search' and query:
-    df_filter_data = boolean_search(query, df_filter_data)
-    df_filter_data['search'] = query
-# st.write(weight_slider_list, st.session_state.value_watcher)
+
 for ele1, ele2 in zip(weight_slider_list, st.session_state.value_watcher):
     if ele1 != ele2:
         df_filter_data = re_rank(df_filter_data)
 
 ## topic selection
-topics = sac.chip(
+st.markdown("""<span style="margin:1em 0px 2em 0px" /> """, unsafe_allow_html=True)
+topics = sac.checkbox(
     items=['Covid', 'Vaccine', 'India', 'China', 'Johnson', 'United States', 'Moderna', 'Pandemic',
     'Pfizer', 'Astrazeneca', 'Trump', 'Biden', 'Russia','Deaths', 'Doses' ,'Effectiveness'], 
-    label='', align='start', size='sm', radius='sm', variant='light' 
-)
+    label='Frequent claim topics:', align='end', check_all=False
+    )
 
 if topics:
     df_filter_data = df_filter_data.fillna('0')
+    df_filter_data['topics'] = ','.join(topics)
     mask = df_filter_data['tweet_text'].apply(lambda x: any(item for item in topics if item.lower() in x.lower()))
     df_filter_data = df_filter_data[mask]
 
-# st.write(df1)
-
 ## pagination
 pagination = st.container()
+st.markdown("""<span style="margin:1em 0px 2em 0px" /> """, unsafe_allow_html=True)
+# st.markdown("""<br/> <br/>""", unsafe_allow_html=True)
+current_page = sac.pagination(total=len(df_filter_data), page_size=20, align='start', simple=True, show_total=True)
 batch_size = 20
-current_page = sac.pagination(total=len(df_filter_data), page_size=20, align='start', jump=True, show_total=True)
 
-## render data
+## render search results
 df_filter_data = df_filter_data.reset_index()
-# st.dataframe(df_filter_data)
 pages = split_frame(df_filter_data, batch_size)
 # st.dataframe(pages[0])
 # st.markdown('**Select Claims:**')
-# st.markdown("""<hr style="margin:1em 0px 2em 0px" /> """, unsafe_allow_html=True)
-# st.markdown("""<br/> <br/>""", unsafe_allow_html=True)
 
-# st.write(st.session_state)
-
-# AgGrid version
+## ouput search results into AgGrid table
 if pages:
-    df_render = pages[current_page - 1][['tweet_text', 'tweet_id', 'search']]
+    df_render = pages[current_page - 1][['tweet_text', 'tweet_id', 'search', 'topics', 'preview']]
     df_render['tweet_id'] = df_render['tweet_id'].apply(str)
 else:
     df_render = pd.DataFrame(columns=['tweet_text'])
@@ -508,11 +465,13 @@ myRenderer = JsCode("""
             init(params) {
                 this.eGui = document.createElement('span');
 
-                var substr = params.data.search.split(' ');
+                var substr_keywords = params.data.search.split(' ');
+                var substr_topics = params.data.topics.split(',');          
+                var substr = substr_keywords.concat("", substr_topics);
 
-                var strRegExp = new RegExp('(' + substr.join('|') + ')', 'ig');
+                var strRegExp = new RegExp('(' + substr.filter(n => n).join('|') + ')', 'ig');
 
-                this.eGui.innerHTML = params.value.replace(strRegExp, '<span style="color: rgb(255, 75, 75)">$&</span>');
+                this.eGui.innerHTML = params.value.replace(strRegExp, '<span style="color: rgb(255, 75, 75); font-weight: 600">$&</span>');
 
             }
             getGui(){
@@ -523,14 +482,16 @@ myRenderer = JsCode("""
 
 with st.form('my_form'):       
     edited_df = GridOptionsBuilder.from_dataframe(df_render)
-    # edited_df.configure_default_column(tooltipField="tweet_text")
+    edited_df.configure_default_column(tooltipField="preview")
     edited_df.configure_column('tweet_id', hide=True)
     edited_df.configure_column('search', hide=True)
-    # edited_df.configure_column('tweet_text', cellRenderer=tooltip_renderer, autoHeight=True)
+    edited_df.configure_column('topics', hide=True)
+    edited_df.configure_column('preview', tooltipComponent=tooltip_renderer)
+    edited_df.configure_column('preview', **{'width':80, 'cellStyle': {"color":"grey"}})
     edited_df.configure_column('tweet_text', wrapText=True, autoHeight=True, cellRenderer=myRenderer)
     edited_df.configure_column('tweet_text', header_name='Select tweets', **{'width':1000})
     edited_df.configure_selection(selection_mode="multiple", use_checkbox=True)
-    # edited_df.configure_grid_options(rowDrag = True)
+    edited_df.configure_grid_options(tooltipShowDelay=1000, tooltipHideDelay=100000)
     gridOptions = edited_df.build()
     grid_table = AgGrid(df_render, 
                                 reload_data = False,
@@ -541,7 +502,7 @@ with st.form('my_form'):
                                 custom_css = {
                                     ".ag-cell-value": {'font-size': '16px', 'line-height': '22px','padding': '10px'}, 
                                     "#gridToolBar": {'display':'none'},
-                                    ".custom-tooltip": {'width': '400px', 'height': 'auto', 'overflow': 'hidden', 'box-shadow': '0 0 0rem grey'},
+                                    ".custom-tooltip": {'width': '400px', 'height': 'auto', 'overflow': 'hidden', 'box-shadow': '0 0 0.25rem grey', 'border-radius':'6px'},
                                     ".custom-tooltip p": {'margin': '5px', 'white-space': 'nowrap'},
                                     ".custom-tooltip p:first-of-type": {'font-weight': 'bold'}
                                               },
@@ -562,11 +523,7 @@ with st.form('my_form'):
     else:
         selected_claims = []
 
-# logger
-
-# if st.session_state['user_defined_facet']:
-#     for item in st.session_state['user_defined_facet']:
-#         criteria_list.append(item['facet_name'])
+## logger
 propability_range = []
 for item in criteria_list:
     try:
