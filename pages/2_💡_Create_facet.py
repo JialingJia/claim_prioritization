@@ -115,8 +115,6 @@ if 'user_defined_facet_number' not in st.session_state:
     st.session_state.value_watcher = [0,0,0,0]
     st.session_state.query_similarity = 0
     st.session_state.similarity_weight_boolean = True
-    st.session_state.customized_facet = ''
-    st.session_state.customized_details = ''
     
 # load data
 TEST_URL = './final_test_data.csv'
@@ -136,55 +134,56 @@ st.info(f'You are going to use GPT-3 to create new criteria to filter claims. Pl
 def start_GPT():
     st.session_state['time_series'].append({'GPT_edit_prompt': datetime.datetime.now().timestamp()})
 
-col1, col2 = st.columns(2)
+col1, col2, col3 = st.columns([5,0.25,5])
 
 with col1:
-    prompt_template = st.selectbox(
-        f'**Prompt template:**',
-        ('Customized', 'Propaganda', 'Difficult', 'Urgent')
-    )
-
-    if prompt_template == 'Customized':
-        st.session_state.customized_facet = ''
-        st.session_state.customized_details = ''
-
-    if prompt_template == 'Propaganda':
-        st.session_state.customized_facet = 'propaganda'
-        st.session_state.customized_details = 'Claims are sensationalized or contain hyperbolic language grabbing public attention, thus easily calling people to action.'
-
-    if prompt_template == 'Difficult':
-        st.session_state.customized_facet = 'difficult'
-        st.session_state.customized_details = 'To fact-check this claim is very difficult because there is no evidence, it requires a long time, or it is too subjective.'
-
-    if prompt_template == 'Urgent':
-        st.session_state.customized_facet = 'urgent and harmful'
-        st.session_state.customized_details = 'Fact-checker should immediately fact-check this claim otherwise it might cause distrastous harm to the public.'
-
-    facet_name = st.text_input(f'**Criterion name**: what is your new criterion?', 
-                                    value=st.session_state.customized_facet, 
+    facet_name = st.text_input(f'**Criterion name**: what is your new criterion?',
                                     placeholder="propaganda", 
                                     on_change=start_GPT)
-    prompts_1 = st.text_area(f'**Descriptions**: how would you describe the new criterion?', 
-                                    value=st.session_state.customized_details, 
-                                    placeholder='e.g., if the new facet aims to detect propaganda claims, describe how a propaganda clam is written',
+    prompts_1 = st.text_area(f'**Descriptions**: how would you describe the new criterion?',
+                                    placeholder='Claims are sensationalized or contain hyperbolic language grabbing public attention, thus easily calling people to action.',
+                                    height= 160,
                                     on_change=start_GPT)
 
-criterion_name = facet_name
-descriptions = prompts_1
+    criterion_name = facet_name
+    descriptions = prompts_1
+            
+with col3:
+    prompt_template = st.selectbox(
+        f'**View prompt examples:**',
+        ('Propaganda', 'Difficult', 'Urgent')
+    )
 
-with col2: 
-    st.caption('This is how your prompt looks like: ')
+    if prompt_template == 'Propaganda':
+        with st.chat_message("user", avatar = "🧑‍💻"):
+            st.write(f"I want to identify claims that are propaganda.")
+        with st.chat_message("user", avatar = "🧑‍💻"):
+            st.write(f"Claims are sensationalized or contain hyperbolic language grabbing public attention, thus easily calling people to action.")
 
-    if descriptions or criterion_name:
+    if prompt_template == 'Difficult':
         with st.chat_message("user", avatar = "🧑‍💻"):
-            st.write(f"I want to identify claims that are {criterion_name}.")
+            st.write(f"I want to identify claims that are difficult to check.")
         with st.chat_message("user", avatar = "🧑‍💻"):
-            st.write(f"{descriptions}")
-    else:
+            st.write(f"To fact-check this claim is very difficult because there is no evidence, it requires a long time, or it is too subjective.")
+
+    if prompt_template == 'Urgent':
         with st.chat_message("user", avatar = "🧑‍💻"):
-            st.write(f"I want to identify claims that are {{criterion_name}}.")
+            st.write(f"I want to identify claims that are urgent.")
         with st.chat_message("user", avatar = "🧑‍💻"):
-            st.write(f"{{descriptions}}")
+            st.write(f"Fact-checker should immediately fact-check this claim otherwise it might cause distrastous harm to the public.")
+            
+    #  st.markdown('''
+    #              Criterion: Propaganda
+                 
+    #              Description: Claims are sensationalized or contain hyperbolic language 
+    #              grabbing public attention, thus easily calling people to action.
+                 
+    #              Criterion: Urgent
+                 
+    #              Description: Fact-checker should immediately fact-check this claim 
+    #              otherwise it might cause distrastous harm to the public.
+    #              ''')
+    #  st.markdown(f'**Example prompt templates**: what is your new criterion?')
 
 
 # # Examples
@@ -289,6 +288,7 @@ prompts_2 = []
 final_submission = st.button('Confirm and add new criterion', type='primary')
 if final_submission:
     if facet_name and (prompts_1 or prompts_2):
+        st.session_state['time_series'].append({'GPT_start': datetime.datetime.now().timestamp()})
         if facet_name in [items['facet_name'] for items in st.session_state['user_defined_facet']]:
             facet_name = facet_name + "_new"
         message = st.warning("The GPT is processing your texts. Don't leave this page otherwise the data will be lost.")

@@ -16,6 +16,9 @@ import base64
 from PIL import Image
 import time
 import streamlit_antd_components as sac
+# import wikipedia
+# from streamlit_searchbox import st_searchbox
+# from typing import Any, List
 
 ######## page config ########
 
@@ -210,6 +213,12 @@ def split_frame(data, rows):
     data = [data.loc[i : i + rows - 1, :] for i in range(0, len(data), rows)]
     return data
 
+# def search_wikipedia(searchterm: str) -> List[any]:
+#     st.session_state['number_search'] += 1 
+#     # st.session_state['search_content'].append({'type': query_search ,'query': query})
+#     st.session_state['time_series'].append({'search': datetime.datetime.now().timestamp()})
+#     return wikipedia.search(searchterm) if searchterm else []
+
 ## load data
 TEST_URL = './final_test_data.csv'
 original_data = load_data(TEST_URL)
@@ -228,6 +237,10 @@ df_filter_data['preview'] = 'tweet'
 ## search input
 query_search = 'similarity'
 # query_search = st.radio("xx", ('Similarity Search', 'Keyword Search'), horizontal=True, label_visibility='collapsed', on_change=increment_search_counter)
+# query = st_searchbox(
+#     search_wikipedia,
+#     key="wiki_searchbox"
+# )
 query = st.text_input("search:", label_visibility="collapsed", placeholder="Search claims", on_change=increment_search_counter)
 
 ## sidebar
@@ -408,17 +421,17 @@ for ele1, ele2 in zip(weight_slider_list, st.session_state.value_watcher):
 
 ## topic selection
 st.markdown("""<span style="margin:1em 0px 2em 0px" /> """, unsafe_allow_html=True)
-topics = sac.checkbox(
-    items=['Covid', 'Vaccine', 'India', 'China', 'Johnson', 'United States', 'Moderna', 'Pandemic',
-    'Pfizer', 'Astrazeneca', 'Trump', 'Biden', 'Russia','Deaths', 'Doses' ,'Effectiveness'], 
-    label='Frequent claim topics:', align='end', check_all=False
-    )
+# topics = sac.checkbox(
+#     items=['Covid', 'Vaccine', 'India', 'China', 'Johnson', 'United States', 'Moderna', 'Pandemic',
+#     'Pfizer', 'Astrazeneca', 'Trump', 'Biden', 'Russia','Deaths', 'Doses' ,'Effectiveness'], 
+#     label='Frequent claim topics:', align='end', check_all=False
+#     )
 
-if topics:
-    df_filter_data = df_filter_data.fillna('0')
-    df_filter_data['topics'] = ','.join(topics)
-    mask = df_filter_data['tweet_text'].apply(lambda x: any(item for item in topics if item.lower() in x.lower()))
-    df_filter_data = df_filter_data[mask]
+# if topics:
+#     df_filter_data = df_filter_data.fillna('0')
+#     df_filter_data['topics'] = ','.join(topics)
+#     mask = df_filter_data['tweet_text'].apply(lambda x: any(item for item in topics if item.lower() in x.lower()))
+#     df_filter_data = df_filter_data[mask]
 
 ## pagination
 pagination = st.container()
@@ -487,7 +500,7 @@ with st.form('my_form'):
     edited_df.configure_column('search', hide=True)
     edited_df.configure_column('topics', hide=True)
     edited_df.configure_column('preview', tooltipComponent=tooltip_renderer)
-    edited_df.configure_column('preview', **{'width':80, 'cellStyle': {"color":"grey"}})
+    edited_df.configure_column('preview', **{'width':100, 'cellStyle': {"color":"grey"}})
     edited_df.configure_column('tweet_text', wrapText=True, autoHeight=True, cellRenderer=myRenderer)
     edited_df.configure_column('tweet_text', header_name='Select tweets', **{'width':1000})
     edited_df.configure_selection(selection_mode="multiple", use_checkbox=True)
@@ -558,9 +571,10 @@ logger = [
             }},
     {'criteria_list': criteria_list}, 
     {'criteria_weight': weight_slider_list}, 
-    {'criteria_probability_range': propability_range}, 
+    {'criteria_probability_range': propability_range},
+    {'similarity_weight': similarity_weight_slider}, 
     {'user_prompts': st.session_state['user_defined_prompts']},
-    {'number_new_slider_change': st.session_state['number_new_slider_change']}
+    {'number_customized_slider_change': st.session_state['number_new_slider_change']}
         ]
 
 ## update start time
@@ -599,3 +613,4 @@ with st.sidebar:
 # st.write("search_query", st.session_state['search_query'])
 
 # st.write(logger)
+# st.write(st.session_state['time_series'])
