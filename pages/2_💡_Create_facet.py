@@ -332,12 +332,14 @@ if final_submission:
         st.session_state['GPT_filtered_data'] = df
         # record end time
         st.session_state['time_series'].append({'GPT_end': datetime.datetime.now().timestamp()})
-        # message.empty
         st.toast('You have successfully added the new facet to the facet browsing!', icon="🎉")
         time.sleep(1)
         st.toast('Go back to the select page and play with it!')
         # else:
         #     st.warning('You have already created this facet. Please give it a different name for the new facet.', icon="👻")
+        message.empty()
+        progress_bar.empty()
+        message = st.success("The ChatGPT has processed successfully! Go back to the select page and play with it!", icon="🎉")
     else:
         st.error('Please complete both of the name and prompt for your new facet. The prompt could be either the description or the example.', icon="👻")
 
