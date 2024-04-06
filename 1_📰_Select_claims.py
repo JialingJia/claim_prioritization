@@ -16,6 +16,7 @@ import base64
 from PIL import Image
 import time
 import streamlit_antd_components as sac
+from streamlit_autorefresh import st_autorefresh
 # import wikipedia
 # from streamlit_searchbox import st_searchbox
 # from typing import Any, List
@@ -212,6 +213,12 @@ def re_rank(data):
 def split_frame(data, rows):
     data = [data.loc[i : i + rows - 1, :] for i in range(0, len(data), rows)]
     return data
+
+def reset_custom_facet():
+    del st.session_state['user_defined_facet']
+    del st.session_state['user_defined_prompts']
+    del st.session_state['user_defined_facet_number']
+    del st.session_state['GPT_filtered_data']
 
 # def search_wikipedia(searchterm: str) -> List[any]:
 #     st.session_state['number_search'] += 1 
@@ -598,14 +605,21 @@ else:
 with st.sidebar:
     if reset:
         st.error("Reset facet might delete the GPT-processed data. Do you really want to do this?")
-        if st.button("Yes I'm ready to rumble"):
-            del st.session_state['user_defined_facet']
-            del st.session_state['user_defined_prompts']
-            del st.session_state['user_defined_facet_number']
-            del st.session_state['GPT_filtered_data']
-            st.experimental_rerun()
+        st.button("Yes I'm ready to rumble", on_click=reset_custom_facet)
+            # del st.session_state['user_defined_facet']
+            # del st.session_state['user_defined_prompts']
+            # del st.session_state['user_defined_facet_number']
+            # del st.session_state['GPT_filtered_data']
+            # st.experimental_rerun()
+            # st.cache_data.clear()
+            # new_facet_check.empty()
+            # new_facet_select.empty()
+            # new_facet_slider.empty()
+            # new_facet_weight_slider.empty()
+            # new_facet.empty()
+            # st_autorefresh(interval=1000, key="autorefresh")
 
-
+# st.write(st.session_state['user_defined_facet'])
 # st.write("number_slider_change", st.session_state['number_slider_change'])
 # st.write("number_similiarity_slider_change", st.session_state['number_similiarity_slider_change'])
 # st.write("number_new_slider_change", st.session_state['number_new_slider_change'])
