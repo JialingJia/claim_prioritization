@@ -16,7 +16,7 @@ import base64
 from PIL import Image
 import time
 import streamlit_antd_components as sac
-from streamlit_autorefresh import st_autorefresh
+# from streamlit_autorefresh import st_autorefresh
 # import wikipedia
 # from streamlit_searchbox import st_searchbox
 # from typing import Any, List
