@@ -192,18 +192,36 @@ def draw_graph(data, name, prob):
     graph = st.plotly_chart(fig, theme='streamlit', config={'staticPlot': True}, use_container_width=True)
     return graph
 
+# def re_rank(data):
+#     data['weighted_score'] = (data['verifiable']*data['verifiable_numeric']*verifiable_weight_slider
+#                                         + data['false_info']*data['false_info_numeric']*false_info_weight_slider
+#                                         + data['interest_to_public']*data['interest_to_public_numeric']*interest_to_public_weight_slider
+#                                         + data['general_harm']*data['general_harm_numeric']*general_harm_weight_slider)
+#     if st.session_state['user_defined_facet']:
+#         for item in st.session_state['user_defined_facet']:
+#             new_facet = item['facet_name']
+#             # new_facet_weight = new_facet + '_weight_slider'
+#             data['weighted_score'] = data['weighted_score'] + data[new_facet]*data[new_facet + "_prob"]*st.session_state[new_facet + '_weight_slider']
+#     if data['similarity_numeric'].empty != True:
+#         data['weighted_score'] = data['weighted_score'] + data['similarity_numeric']*similarity_weight_slider
+#     if sum(data['weighted_score']) != 0:
+#         data = data.sort_values(by='weighted_score', ascending=False)
+#     else:
+#         data = data.sort_index()
+#     return data
+
 def re_rank(data):
-    data['weighted_score'] = (data['verifiable']*data['verifiable_numeric']*verifiable_weight_slider
-                                        + data['false_info']*data['false_info_numeric']*false_info_weight_slider
-                                        + data['interest_to_public']*data['interest_to_public_numeric']*interest_to_public_weight_slider
-                                        + data['general_harm']*data['general_harm_numeric']*general_harm_weight_slider)
+    data['weighted_score'] = (data['verifiable']*np.square(data['verifiable_numeric']*verifiable_weight_slider)
+                                        + data['false_info']*np.square(data['false_info_numeric']*false_info_weight_slider)
+                                        + data['interest_to_public']*np.square(data['interest_to_public_numeric']*interest_to_public_weight_slider)
+                                        + data['general_harm']*np.square(data['general_harm_numeric']*general_harm_weight_slider))
     if st.session_state['user_defined_facet']:
         for item in st.session_state['user_defined_facet']:
             new_facet = item['facet_name']
             # new_facet_weight = new_facet + '_weight_slider'
-            data['weighted_score'] = data['weighted_score'] + data[new_facet]*data[new_facet + "_prob"]*st.session_state[new_facet + '_weight_slider']
+            data['weighted_score'] = data['weighted_score'] + np.square(data[new_facet]*data[new_facet + "_prob"]*st.session_state[new_facet + '_weight_slider'])
     if data['similarity_numeric'].empty != True:
-        data['weighted_score'] = data['weighted_score'] + data['similarity_numeric']*similarity_weight_slider
+        data['weighted_score'] = data['weighted_score'] + np.square(data['similarity_numeric']*similarity_weight_slider)
     if sum(data['weighted_score']) != 0:
         data = data.sort_values(by='weighted_score', ascending=False)
     else:
