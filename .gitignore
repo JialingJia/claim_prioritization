@@ -1,6 +1,13 @@
 .env
 secrets.toml
+
 final_test_data_with_topics.csv
 simulated_data.csv
 user_test_data_cleaned_low.csv
 user_test_data_cleaned.csv
+
+__pycache__/
+**/__pycache__/
+
+.DS_Store
+.streamlit/
