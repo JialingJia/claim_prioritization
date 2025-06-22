@@ -1,10 +1,12 @@
 import numpy as np
 import streamlit as st
 import os
-import openai
+from openai import OpenAI
+import json
+
+# Set up the OpenAI API key
 os.environ['OPENAI_API_KEY'] = st.secrets['OPENAI_API_KEY']
-# openai.api_key = os.getenv("OPENAI_API_KEY")
-openai.api_key = os.environ['OPENAI_API_KEY']
+client = OpenAI(api_key=os.environ['OPENAI_API_KEY'])
 
 class Template:
     def __init__ (self, facet, input, description, example):
@@ -18,8 +20,7 @@ class Template:
         return context
 
     def ex_context(self):
-        # context = """\nHere are some examples that match the criterion""" + self.facet
-        # context = """\n###\n"""
+        context = ""
         for idx, example in enumerate(self.example):
             if example[1] == 1:
                 context_example = """\n###\nInput: """ + example[0] + """\n###\nOutput: yes"""
@@ -38,9 +39,10 @@ class Template:
             context = self.des_context()
         elif self.example:
             context = self.ex_context()
+        else:
+            context = ""
 
         prompt = user_defined_instruct + context + intro + output
-        # st.markdown(prompt)
         return prompt 
     
 class GPT:
@@ -48,83 +50,49 @@ class GPT:
         self.prompt = prompt
 
     def generate_1(self):
-        GPT_response = openai.Completion.create(
-            model= 'gpt-3.5-turbo-instruct',
-            prompt= self.prompt,
-            max_tokens=128,
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant that responds with only 'yes' or 'no'."},
+                {"role": "user", "content": self.prompt}
+            ],
+            max_tokens=10,
             temperature=0,
-            logprobs=5
+            logprobs=True,
+            top_logprobs=5
         )
-
-        # print(GPT_response['choices'][0])
-        tokens = GPT_response['choices'][0]['logprobs']['tokens']
-        tokens_prob = GPT_response['choices'][0]['logprobs']['top_logprobs']
-
-        # yes_prob = 0.5
-        # no_prob = 0.5
-        # st.write(tokens)
-        # st.write(tokens_prob)
-        for token, prob in zip(tokens, tokens_prob):
-            # print('token that is currently examined:', token)
-            # st.write('token that is currently examined:', token)
-            if token.strip().lower() in ['yes','no']:
-                # st.write('exist')
-                yes_prob = 0
-                no_prob = 0
-                for name, value in prob.items():
-                    if name.strip().lower() == 'no':
-                        # st.write('no_pro:', np.exp(value))
-                        no_prob = no_prob + np.exp(value)
-                    if name.strip().lower() == 'yes':
-                        # st.write('yes_pro:', np.exp(value))
-                        yes_prob = yes_prob + np.exp(value)
-                # st.write('prob of answer no:', no_prob)
-                # st.write('prob of answer yes:', yes_prob)
-                break
-
-        yes_prob_normalized = round(yes_prob/(no_prob+yes_prob), 3)
-        no_prob_normalized = round(no_prob/(no_prob+yes_prob), 3)
-
-        return [1, yes_prob_normalized]
-        # if no_prob_normalized < yes_prob_normalized:
-        #     return [1, yes_prob_normalized]
-        # else:
-        #     return [0, no_prob_normalized]
         
-    def generate_2(self):
-        GPT_response = openai.Completion.create(
-            model= 'gpt-3.5-turbo-instruct',
-            prompt= self.prompt,
-            max_tokens=128,
-            temperature=0,
-            logprobs=5
-        )
-
-        # print(GPT_response['choices'][0])
-        tokens = GPT_response['choices'][0]['logprobs']['tokens']
-        tokens_prob = GPT_response['choices'][0]['logprobs']['top_logprobs']
-
+        # Extract token logprobs from the response
+        logprobs = response.choices[0].logprobs.content[0].top_logprobs
+        
         yes_prob = 0
         no_prob = 0
-        # st.write(tokens)
-        # st.write(tokens_prob)
-        for name, value in tokens_prob[0].items():
-            if name.strip().lower() == 'no':
-                # st.write('no_pro:', np.exp(value))
-                no_prob = no_prob + np.exp(value)
-            if name.strip().lower() == 'yes':
-                # st.write('yes_pro:', np.exp(value))
-                yes_prob = yes_prob + np.exp(value)
-                # st.write('prob of answer no:', no_prob)
-                # st.write('prob of answer yes:', yes_prob)
-
+        
+        # Search for 'yes' and 'no' tokens in the logprobs
+        for item in logprobs:
+            if item.token.strip().lower() == 'yes':
+                yes_prob = np.exp(item.logprob)
+            elif item.token.strip().lower() == 'no':
+                no_prob = np.exp(item.logprob)
+        
+        # If neither 'yes' nor 'no' is in top tokens, check completion text
+        if yes_prob == 0 and no_prob == 0:
+            completion_text = response.choices[0].message.content.strip().lower()
+            if completion_text == 'yes':
+                yes_prob = 0.99
+                no_prob = 0.01
+            elif completion_text == 'no':
+                yes_prob = 0.01
+                no_prob = 0.99
+            else:
+                # Fallback if neither yes nor no is detected
+                yes_prob = 0.5
+                no_prob = 0.5
+        
         yes_prob_normalized = round(yes_prob/(no_prob+yes_prob), 3)
-        no_prob_normalized = round(no_prob/(no_prob+yes_prob), 3)
-
-        # if no_prob_normalized < yes_prob_normalized:
-        #     return [1, yes_prob_normalized]
-        # else:
-        #     return [0, no_prob_normalized]
         
         return [1, yes_prob_normalized]
         
+    def generate_2(self):
+        # This is now just an alias for generate_1 to maintain compatibility
+        return self.generate_1()

@@ -16,10 +16,6 @@ import base64
 from PIL import Image
 import time
 import streamlit_antd_components as sac
-# from streamlit_autorefresh import st_autorefresh
-# import wikipedia
-# from streamlit_searchbox import st_searchbox
-# from typing import Any, List
 
 ######## page config ########
 
@@ -76,7 +72,7 @@ st.markdown("""
     </style>
     """,unsafe_allow_html=True)
 
-## data and model cache
+######## data and model cache ########
 @st.cache_data()
 def load_data(url):
     data = pd.read_csv(url)
@@ -123,6 +119,18 @@ if 'user_defined_facet_number' not in st.session_state:
     st.session_state.value_watcher = [0,0,0,0]
     st.session_state.query_similarity = 0
     st.session_state.similarity_weight_boolean = True
+
+if 'gpt_processing' not in st.session_state:
+    st.session_state['gpt_processing'] = False
+
+if 'temp_results' not in st.session_state:
+    st.session_state['temp_results'] = []
+    
+if 'facet_info' not in st.session_state:
+    st.session_state['facet_info'] = None
+    
+if 'processing_state_json' not in st.session_state:
+    st.session_state['processing_state_json'] = None
 
 ## detect feature changes
 def increment_predefined_counter():
@@ -192,24 +200,6 @@ def draw_graph(data, name, prob):
     graph = st.plotly_chart(fig, theme='streamlit', config={'staticPlot': True}, use_container_width=True)
     return graph
 
-# def re_rank(data):
-#     data['weighted_score'] = (data['verifiable']*data['verifiable_numeric']*verifiable_weight_slider
-#                                         + data['false_info']*data['false_info_numeric']*false_info_weight_slider
-#                                         + data['interest_to_public']*data['interest_to_public_numeric']*interest_to_public_weight_slider
-#                                         + data['general_harm']*data['general_harm_numeric']*general_harm_weight_slider)
-#     if st.session_state['user_defined_facet']:
-#         for item in st.session_state['user_defined_facet']:
-#             new_facet = item['facet_name']
-#             # new_facet_weight = new_facet + '_weight_slider'
-#             data['weighted_score'] = data['weighted_score'] + data[new_facet]*data[new_facet + "_prob"]*st.session_state[new_facet + '_weight_slider']
-#     if data['similarity_numeric'].empty != True:
-#         data['weighted_score'] = data['weighted_score'] + data['similarity_numeric']*similarity_weight_slider
-#     if sum(data['weighted_score']) != 0:
-#         data = data.sort_values(by='weighted_score', ascending=False)
-#     else:
-#         data = data.sort_index()
-#     return data
-
 def re_rank(data):
     data['weighted_score'] = (data['verifiable']*np.square(data['verifiable_numeric']*verifiable_weight_slider)
                                         + data['false_info']*np.square(data['false_info_numeric']*false_info_weight_slider)
@@ -238,12 +228,6 @@ def reset_custom_facet():
     del st.session_state['user_defined_facet_number']
     del st.session_state['GPT_filtered_data']
 
-# def search_wikipedia(searchterm: str) -> List[any]:
-#     st.session_state['number_search'] += 1 
-#     # st.session_state['search_content'].append({'type': query_search ,'query': query})
-#     st.session_state['time_series'].append({'search': datetime.datetime.now().timestamp()})
-#     return wikipedia.search(searchterm) if searchterm else []
-
 ## load data
 TEST_URL = './final_test_data.csv'
 original_data = load_data(TEST_URL)
@@ -257,16 +241,43 @@ df_filter_data['search'] = ''
 df_filter_data['topics'] = ''
 df_filter_data['preview'] = 'tweet'
 
+# Check for in-progress facet creation
+if 'gpt_processing' in st.session_state and st.session_state['gpt_processing']:
+    st.warning("⚠️ A new criterion is currently being processed in the 'Create facet' page.")
+    st.info("Please complete the processing or cancel it before using this page to avoid errors.")
+    
+    # # Provide button to navigate to create facet page
+    # if st.button("Go to Create Facet Page"):
+    #     # Use query parameters to navigate
+    #     st.query_params["page"] = "create_facet"
+    #     st.rerun()
+    
+    # Provide button to cancel processing (emergency override)
+    if st.button("Emergency Cancel Processing", type="secondary", help="Use this only if processing is stuck"):
+        st.session_state['gpt_processing'] = False
+        st.session_state['temp_results'] = []
+        st.session_state['facet_info'] = None
+        st.session_state['processing_state_json'] = None
+        st.rerun()
+    
+    # Exit early - don't try to render the rest of the page
+    st.stop()
+
+# Safely check if custom facets exist in the dataframe
+if st.session_state['user_defined_facet']:
+    for item in st.session_state['user_defined_facet']:
+        new_facet = item['facet_name']
+        # Check if the column exists before trying to use it
+        if new_facet not in df_filter_data.columns:
+            # Initialize with default values if the column doesn't exist
+            df_filter_data[new_facet] = 0
+            df_filter_data[new_facet + '_prob'] = 0.0
+
 ######## interface layout ########
 
 ## search input
 query_search = 'similarity'
-# query_search = st.radio("xx", ('Similarity Search', 'Keyword Search'), horizontal=True, label_visibility='collapsed', on_change=increment_search_counter)
-# query = st_searchbox(
-#     search_wikipedia,
-#     key="wiki_searchbox"
-# )
-query = st.text_input("search:", label_visibility="collapsed", placeholder="Search claims", on_change=increment_search_counter)
+query = st.text_input("search:", label_visibility="collapsed", placeholder="Search claims", on_change=increment_search_counter, width="stretch")
 
 ## sidebar
 with st.sidebar:
@@ -289,7 +300,7 @@ with st.sidebar:
         verifiable = st.checkbox('Verifiable', help="The system helps you rank tweets that are likely to be verifiable at the top.", value=True, on_change=increment_predefined_counter)
     with col2:
         if verifiable:
-            verifiable_select = st.toggle('', key='verifiable_select', label_visibility='hidden')
+            verifiable_select = st.toggle('.', key='verifiable_select', label_visibility='hidden')
     if verifiable:
         verifiable_weight_slider = st.slider('verifiable', key='verifiable_weight', min_value=0.0, value=0.1, max_value=1.0, format="%f", label_visibility='collapsed', on_change=increment_predefined_counter)
         if verifiable_select:
@@ -309,7 +320,7 @@ with st.sidebar:
         false_info = st.checkbox('Likely to be false', help="The system helps you rank tweets that are likely to contain false information at the top.", value=True, on_change=increment_predefined_counter)
     with col2:
         if false_info:
-            false_info_select = st.toggle('', key='false_info_select', label_visibility='hidden')
+            false_info_select = st.toggle('.', key='false_info_select', label_visibility='hidden')
     if false_info:
         false_info_weight_slider = st.slider('false_info', key='false_info_weight', min_value=0.0, value=0.1, max_value=1.0, format="%f", label_visibility='collapsed', on_change=increment_predefined_counter)
         if false_info_select:
@@ -329,7 +340,7 @@ with st.sidebar:
         general_harm = st.checkbox('Likely to cause harm', help="The system helps you rank claims that are likely to cause harm to the society at the top.", value=True, on_change=increment_predefined_counter)
     with col2:
         if general_harm:
-            general_harm_select = st.toggle('', key='general_harm_select', label_visibility='hidden')
+            general_harm_select = st.toggle('.', key='general_harm_select', label_visibility='hidden')
     if general_harm:
         general_harm_weight_slider = st.slider('general_harm', key='general_harm_weight', min_value=0.0, value=0.1, max_value=1.0, format="%f", label_visibility='collapsed', on_change=increment_predefined_counter)
         if general_harm_select:
@@ -349,7 +360,7 @@ with st.sidebar:
         public_interest = st.checkbox('Interest to the public', help="The system helps you rank claims that the public might be more interested in at the top.", value=True, on_change=increment_predefined_counter)
     with col2:
         if public_interest:
-            interest_to_public_select = st.toggle('', key='interest_to_public_select', label_visibility='hidden')
+            interest_to_public_select = st.toggle('.', key='interest_to_public_select', label_visibility='hidden')
     if public_interest:
         interest_to_public_weight_slider = st.slider('interest_to_public', key='interest_to_public_weight', min_value=0.0, value=0.1, max_value=1.0, format="%f", label_visibility='collapsed', on_change=increment_predefined_counter)
         if interest_to_public_select:
@@ -381,7 +392,7 @@ with st.sidebar:
                 new_facet_check = st.checkbox("""{new_facet}""".format(new_facet=item['facet_name'].capitalize()), key=new_facet + '_check', value=True, on_change=increment_customized_counter)
             with col2:
                 if new_facet_check:
-                    new_facet_select = st.toggle('', key=new_facet + '_select', label_visibility='hidden')
+                    new_facet_select = st.toggle('.', key=new_facet + '_select', label_visibility='hidden')
             # st.write(st.session_state[new_facet + '_check'])
             if st.session_state[new_facet + '_check']:
                 new_facet_weight_slider = st.slider('xx', key=new_facet + '_weight_slider', min_value=0.0, value=0.1, max_value=1.0, format="%f", label_visibility='collapsed', on_change=increment_customized_counter)
@@ -444,32 +455,14 @@ for ele1, ele2 in zip(weight_slider_list, st.session_state.value_watcher):
     if ele1 != ele2:
         df_filter_data = re_rank(df_filter_data)
 
-## topic selection
-st.markdown("""<span style="margin:1em 0px 2em 0px" /> """, unsafe_allow_html=True)
-# topics = sac.checkbox(
-#     items=['Covid', 'Vaccine', 'India', 'China', 'Johnson', 'United States', 'Moderna', 'Pandemic',
-#     'Pfizer', 'Astrazeneca', 'Trump', 'Biden', 'Russia','Deaths', 'Doses' ,'Effectiveness'], 
-#     label='Frequent claim topics:', align='end', check_all=False
-#     )
-
-# if topics:
-#     df_filter_data = df_filter_data.fillna('0')
-#     df_filter_data['topics'] = ','.join(topics)
-#     mask = df_filter_data['tweet_text'].apply(lambda x: any(item for item in topics if item.lower() in x.lower()))
-#     df_filter_data = df_filter_data[mask]
-
 ## pagination
 pagination = st.container()
-st.markdown("""<span style="margin:1em 0px 2em 0px" /> """, unsafe_allow_html=True)
-# st.markdown("""<br/> <br/>""", unsafe_allow_html=True)
 current_page = sac.pagination(total=len(df_filter_data), page_size=20, align='start', simple=False, show_total=True)
 batch_size = 20
 
 ## render search results
 df_filter_data = df_filter_data.reset_index()
 pages = split_frame(df_filter_data, batch_size)
-# st.dataframe(pages[0])
-# st.markdown('**Select Claims:**')
 
 ## ouput search results into AgGrid table
 if pages:
@@ -552,12 +545,9 @@ with st.form('my_form'):
         st.session_state['time_series'].append({'selection': datetime.datetime.now().timestamp()})
         selected_claims = grid_table['selected_rows']
         st.session_state['end_time'] = datetime.datetime.now().timestamp()
-        st.session_state['time_series'].append({'end': datetime.datetime.now().timestamp()})
+        st.session_state['time_series'].append({'end': datetime.datetime.now().timestamp(), "selected_claims": selected_claims})
         st.toast('Claims have been successfully selected!', icon="🎉")
-        # time.sleep(.5)
-        # st.toast('Selected claims are saved in the selection page.')
-        # time.sleep(.5)
-        # st.toast('Continue finding more claims!')
+
     else:
         selected_claims = []
 
@@ -571,15 +561,9 @@ for item in criteria_list:
 
 if query and {'type':query_search, 'query':query} != st.session_state['search_query'][-1]:
     st.session_state['search_query'].append({'type':query_search, 'query':query})
-#     # st.session_state['number_search']  = st.session_state['number_search'] + 1
-#     st.session_state['time_series'].append({'search': datetime.datetime.now().timestamp()})
-
-# if query and st.session_state.query_similarity != similarity_weight_slider:
-    # st.session_state['number_similiarity_slider_change'] = st.session_state['number_similiarity_slider_change'] + 1
-#     st.session_state['time_series'].append({'similarity_slider': datetime.datetime.now().timestamp()})
 
 logger = [
-    {'user_id': st.experimental_user.email}, 
+    # {'user_id': st.experimental_user.email}, 
     {'selected_claims': selected_claims}, 
     {'user_query': st.session_state['search_query']},
     {'number_query': st.session_state['number_search']}, 
@@ -595,9 +579,9 @@ logger = [
             'end_time': st.session_state['end_time']
             }},
     {'criteria_list': criteria_list}, 
-    {'criteria_weight': weight_slider_list}, 
+    {'criteria_weight': [float(w) for w in weight_slider_list]}, 
     {'criteria_probability_range': propability_range},
-    {'similarity_weight': similarity_weight_slider}, 
+    {'similarity_weight': float(similarity_weight_slider)},
     {'user_prompts': st.session_state['user_defined_prompts']},
     {'number_customized_slider_change': st.session_state['number_new_slider_change']}
         ]
@@ -607,7 +591,7 @@ logger = [
 st.session_state.value_watcher = weight_slider_list
 st.session_state.query_similarity = similarity_weight_slider
 
-if selected_claims:
+if len(selected_claims) > 0:
     st.session_state.claim_selected = False
     st.session_state['start_time'] = st.session_state['end_time']
     st.session_state['logger'].append(logger)
