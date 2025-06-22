@@ -1,6 +1,8 @@
 # Claim Prioritization Prototype
 
-A tool for fact-checkers and journalists to efficiently identify and prioritize checkworthy social media claims using AI-powered criteria.
+A tool for fact-checkers and journalists to efficiently identify and prioritize checkworthy social media claims using AI-powered criteria. 
+
+To appear at CSCW2025: Liu, H., Gwizdka, J., & Lease, M. (2024). Exploring multidimensional checkworthiness: Designing AI-assisted claim prioritization for human fact-checkers. In arXiv [cs.HC]. arXiv. http://arxiv.org/abs/2412.08185
 
 ![Claim Selection Tool](claim_prioritization_UI.jpg)
 
